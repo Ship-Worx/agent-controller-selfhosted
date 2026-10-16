@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "project": null,
+  "account_id": null,
+  "region": null,
+  "currency": "USD",
+  "total_project_ceiling": null,
+  "as_of_utc": null,
+  "project_history_start_date": null,
+  "historical_project_names_and_tags": [],
+  "coverage": {
+    "aws_all_project_regions_and_accounts_reviewed": false,
+    "untagged_deleted_and_shared_resources_reviewed": false,
+    "openai_all_project_organizations_and_keys_reviewed": false,
+    "prior_project_spend_and_reservations_reviewed": false,
+    "billing_lag_and_unknown_usage_bounded": false,
+    "shared_costs_tax_and_fees_allocated": false
+  },
+  "settled_aws_usd": null,
+  "settled_openai_usd": null,
+  "settled_other_project_usd": null,
+  "outstanding_reservations_not_in_settled_usd": null,
+  "unbilled_or_unknown_upper_bound_not_reserved_usd": null,
+  "remaining_existing_resource_lifecycle_upper_bound_usd": null,
+  "proposed_new_package_and_test_upper_bound_usd": null,
+  "evidence_files": [],
+  "reviewed_by": null,
+  "notes": "Template only. Null means unknown, never zero. Every amount must be backed by current authoritative exports or a documented conservative bound. Keep billing exports outside version control."
+}

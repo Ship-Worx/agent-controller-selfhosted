@@ -1,0 +1,49 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "SubmitOnlyPilotStackWithNamedServiceRole",
+      "Effect": "Allow",
+      "Action": [
+        "cloudformation:CreateStack",
+        "cloudformation:UpdateStack"
+      ],
+      "Resource": "arn:aws:cloudformation:__INSTALL_REGION__:__INSTALL_ACCOUNT__:stack/agent-controller-pilot/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__",
+          "cloudformation:RoleArn": "arn:aws:iam::__INSTALL_ACCOUNT__:role/agent-controller-pilot-deployment"
+        }
+      }
+    },
+    {
+      "Sid": "ReadOnlyPilotStack",
+      "Effect": "Allow",
+      "Action": [
+        "cloudformation:DescribeStacks",
+        "cloudformation:DescribeStackEvents",
+        "cloudformation:DescribeStackResources",
+        "cloudformation:GetTemplate"
+      ],
+      "Resource": "arn:aws:cloudformation:__INSTALL_REGION__:__INSTALL_ACCOUNT__:stack/agent-controller-pilot/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__"
+        }
+      }
+    },
+    {
+      "Sid": "PassOnlyPilotDeploymentRole",
+      "Effect": "Allow",
+      "Action": [
+        "iam:PassRole"
+      ],
+      "Resource": "arn:aws:iam::__INSTALL_ACCOUNT__:role/agent-controller-pilot-deployment",
+      "Condition": {
+        "StringEquals": {
+          "iam:PassedToService": "cloudformation.amazonaws.com"
+        }
+      }
+    }
+  ]
+}

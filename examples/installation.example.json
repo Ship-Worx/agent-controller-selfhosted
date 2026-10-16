@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "project_id": "my-agent-controller",
+  "account_id": null,
+  "region": null,
+  "limit_microusd": 100000000
+}

@@ -1,0 +1,21 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "OnlyPilotRuntimeMayAssumeWorkerRole",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "bedrock-agentcore.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole",
+      "Condition": {
+        "StringEquals": {
+          "aws:SourceAccount": "__INSTALL_ACCOUNT__"
+        },
+        "ArnEquals": {
+          "aws:SourceArn": "__OBSERVED_AGENT_RUNTIME_ARN__"
+        }
+      }
+    }
+  ]
+}

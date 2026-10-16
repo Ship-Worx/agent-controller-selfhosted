@@ -1,0 +1,13 @@
+{
+  "Type": "AWS::EC2::SecurityGroupEgress",
+  "Properties": {
+    "Description": "HTTPS to regional S3 via dedicated gateway endpoint for ECR layers",
+    "GroupId": "__NEW_WORKER_SECURITY_GROUP_ID__",
+    "IpProtocol": "tcp",
+    "FromPort": 443,
+    "ToPort": 443,
+    "DestinationPrefixListId": {
+      "Ref": "S3ManagedPrefixList"
+    }
+  }
+}

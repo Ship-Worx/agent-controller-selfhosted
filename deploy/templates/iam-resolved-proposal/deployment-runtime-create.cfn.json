@@ -1,0 +1,35 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "CreateOnlyTaggedRuntimeInReviewedPrivateNetwork",
+      "Effect": "Allow",
+      "Action": [
+        "bedrock-agentcore:CreateAgentRuntime"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__",
+          "aws:RequestTag/Project": "agent-controller"
+        },
+        "Null": {
+          "bedrock-agentcore:subnets": "false",
+          "bedrock-agentcore:securityGroups": "false"
+        },
+        "ForAllValues:StringEquals": {
+          "bedrock-agentcore:subnets": [
+            {
+              "Ref": "PilotSubnet"
+            }
+          ],
+          "bedrock-agentcore:securityGroups": [
+            {
+              "Ref": "WorkerSecurityGroup"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

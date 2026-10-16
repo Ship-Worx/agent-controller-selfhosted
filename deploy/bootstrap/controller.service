@@ -1,0 +1,40 @@
+[Unit]
+Description=Agent Controller synthetic pilot with existing-state guard
+After=local-fs.target
+RequiresMountsFor=/srv/controller-volume
+ConditionPathExists=/etc/agent-controller/activation.json
+
+[Service]
+Type=simple
+User=agent-controller
+Group=agent-controller
+WorkingDirectory=/opt/agent-controller
+RuntimeDirectory=agent-controller
+RuntimeDirectoryMode=0700
+UMask=0077
+ExecStart=/opt/agent-controller/.venv/bin/python -I -B /opt/agent-controller/deploy/bootstrap/launch.py controller
+ExecStartPost=/opt/agent-controller/.venv/bin/python -I -B /opt/agent-controller/deploy/bootstrap/launch.py wait-ready $MAINPID
+Restart=no
+RuntimeMaxSec=7200
+TimeoutStopSec=15
+KillMode=control-group
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+AmbientCapabilities=
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=no
+DevicePolicy=closed
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+RestrictAddressFamilies=AF_UNIX AF_INET
+ReadWritePaths=/srv/controller-volume /run/agent-controller
+InaccessiblePaths=-/run/agent-controller-tls -/run/agent-controller-proxy
+StandardOutput=null
+StandardError=null
+
+# Deliberately no [Install] section: never enable automatically in an AMI.

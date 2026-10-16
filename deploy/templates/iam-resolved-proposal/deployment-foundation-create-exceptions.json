@@ -1,0 +1,247 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "CreateOnlyTaggedPilotVpc",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:CreateVpc"
+      ],
+      "Resource": "arn:aws:ec2:__INSTALL_REGION__:__INSTALL_ACCOUNT__:vpc/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__",
+          "aws:RequestTag/Project": "agent-controller"
+        }
+      }
+    },
+    {
+      "Sid": "CreateTaggedSubnetInReturnedPilotVpc",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:CreateSubnet"
+      ],
+      "Resource": [
+        "arn:aws:ec2:__INSTALL_REGION__:__INSTALL_ACCOUNT__:subnet/*",
+        {
+          "Fn::Sub": "arn:aws:ec2:__INSTALL_REGION__:__INSTALL_ACCOUNT__:vpc/${PilotVpc}"
+        }
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__",
+          "aws:RequestTag/Project": "agent-controller"
+        }
+      }
+    },
+    {
+      "Sid": "CreateTaggedNetworkResourcesInReturnedVpc",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:CreateRouteTable",
+        "ec2:CreateSecurityGroup"
+      ],
+      "Resource": [
+        "arn:aws:ec2:__INSTALL_REGION__:__INSTALL_ACCOUNT__:route-table/*",
+        "arn:aws:ec2:__INSTALL_REGION__:__INSTALL_ACCOUNT__:security-group/*",
+        {
+          "Fn::Sub": "arn:aws:ec2:__INSTALL_REGION__:__INSTALL_ACCOUNT__:vpc/${PilotVpc}"
+        }
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__",
+          "aws:RequestTag/Project": "agent-controller"
+        }
+      }
+    },
+    {
+      "Sid": "CreateTaggedEndpointsInReviewedNetwork",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:CreateVpcEndpoint"
+      ],
+      "Resource": [
+        "arn:aws:ec2:__INSTALL_REGION__:__INSTALL_ACCOUNT__:vpc-endpoint/*",
+        {
+          "Fn::Sub": "arn:aws:ec2:__INSTALL_REGION__:__INSTALL_ACCOUNT__:vpc/${PilotVpc}"
+        },
+        {
+          "Fn::Sub": "arn:aws:ec2:__INSTALL_REGION__:__INSTALL_ACCOUNT__:subnet/${PilotSubnet}"
+        },
+        {
+          "Fn::Sub": "arn:aws:ec2:__INSTALL_REGION__:__INSTALL_ACCOUNT__:route-table/${PilotRouteTable}"
+        },
+        {
+          "Fn::Sub": "arn:aws:ec2:__INSTALL_REGION__:__INSTALL_ACCOUNT__:security-group/${WorkerEndpointSecurityGroup}"
+        },
+        {
+          "Fn::Sub": "arn:aws:ec2:__INSTALL_REGION__:__INSTALL_ACCOUNT__:security-group/${ControllerEndpointSecurityGroup}"
+        }
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__",
+          "aws:RequestTag/Project": "agent-controller"
+        }
+      }
+    },
+    {
+      "Sid": "TagOnlyDuringNamedCreateOperations",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:CreateTags"
+      ],
+      "Resource": [
+        "arn:aws:ec2:__INSTALL_REGION__:__INSTALL_ACCOUNT__:vpc/*",
+        "arn:aws:ec2:__INSTALL_REGION__:__INSTALL_ACCOUNT__:subnet/*",
+        "arn:aws:ec2:__INSTALL_REGION__:__INSTALL_ACCOUNT__:route-table/*",
+        "arn:aws:ec2:__INSTALL_REGION__:__INSTALL_ACCOUNT__:security-group/*",
+        "arn:aws:ec2:__INSTALL_REGION__:__INSTALL_ACCOUNT__:vpc-endpoint/*",
+        "arn:aws:ec2:__INSTALL_REGION__:__INSTALL_ACCOUNT__:volume/*",
+        "arn:aws:ec2:__INSTALL_REGION__:__INSTALL_ACCOUNT__:instance/*",
+        "arn:aws:ec2:__INSTALL_REGION__:__INSTALL_ACCOUNT__:network-interface/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__",
+          "aws:RequestTag/Project": "agent-controller",
+          "ec2:CreateAction": [
+            "CreateVpc",
+            "CreateSubnet",
+            "CreateRouteTable",
+            "CreateSecurityGroup",
+            "CreateVpcEndpoint",
+            "CreateVolume",
+            "RunInstances"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "CreateOnlyTaggedPilotDataVolume",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:CreateVolume"
+      ],
+      "Resource": "arn:aws:ec2:__INSTALL_REGION__:__INSTALL_ACCOUNT__:volume/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__",
+          "aws:RequestTag/Project": "agent-controller",
+          "ec2:VolumeType": "gp3"
+        },
+        "Bool": {
+          "ec2:Encrypted": "true"
+        },
+        "NumericLessThanEquals": {
+          "ec2:VolumeSize": "16"
+        }
+      }
+    },
+    {
+      "Sid": "CreateOnlyNamedExecutionAndOperatorRoles",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateRole"
+      ],
+      "Resource": [
+        "arn:aws:iam::__INSTALL_ACCOUNT__:role/agent-controller-pilot-controller",
+        "arn:aws:iam::__INSTALL_ACCOUNT__:role/agent-controller-pilot-worker",
+        "arn:aws:iam::__INSTALL_ACCOUNT__:role/agent-controller-pilot-operator"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestTag/Project": "agent-controller"
+        }
+      }
+    },
+    {
+      "Sid": "CreateOnlyNamedInstanceProfile",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateInstanceProfile"
+      ],
+      "Resource": "arn:aws:iam::__INSTALL_ACCOUNT__:instance-profile/agent-controller-pilot-controller"
+    },
+    {
+      "Sid": "CreateOnlyTaggedRepository",
+      "Effect": "Allow",
+      "Action": [
+        "ecr:CreateRepository"
+      ],
+      "Resource": "arn:aws:ecr:__INSTALL_REGION__:__INSTALL_ACCOUNT__:repository/agent-controller-worker",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__",
+          "aws:RequestTag/Project": "agent-controller"
+        }
+      }
+    },
+    {
+      "Sid": "CreateOnlyNamedTaggedSecrets",
+      "Effect": "Allow",
+      "Action": [
+        "secretsmanager:CreateSecret"
+      ],
+      "Resource": [
+        "arn:aws:secretsmanager:__INSTALL_REGION__:__INSTALL_ACCOUNT__:secret:agent-controller/pilot/admin-??????",
+        "arn:aws:secretsmanager:__INSTALL_REGION__:__INSTALL_ACCOUNT__:secret:agent-controller/pilot/tls-??????"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__",
+          "aws:RequestTag/Project": "agent-controller",
+          "secretsmanager:Name": [
+            "agent-controller/pilot/admin",
+            "agent-controller/pilot/tls"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "CreateOnlyTaggedSymmetricKey",
+      "Effect": "Allow",
+      "Action": [
+        "kms:CreateKey"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__",
+          "aws:RequestTag/Project": "agent-controller",
+          "kms:KeySpec": "SYMMETRIC_DEFAULT",
+          "kms:KeyUsage": "ENCRYPT_DECRYPT"
+        }
+      }
+    },
+    {
+      "Sid": "CreateOnlyNamedTaggedControllerLogGroup",
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup"
+      ],
+      "Resource": "arn:aws:logs:__INSTALL_REGION__:__INSTALL_ACCOUNT__:log-group:/agent-controller/agent-controller-pilot/controller:*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__",
+          "aws:RequestTag/Project": "agent-controller"
+        }
+      }
+    },
+    {
+      "Sid": "CreateOnlyNamedPortDocument",
+      "Effect": "Allow",
+      "Action": [
+        "ssm:CreateDocument"
+      ],
+      "Resource": "arn:aws:ssm:__INSTALL_REGION__:__INSTALL_ACCOUNT__:document/agent-controller-pilot-port",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__",
+          "aws:RequestTag/Project": "agent-controller"
+        }
+      }
+    }
+  ]
+}

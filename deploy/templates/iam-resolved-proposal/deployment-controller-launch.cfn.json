@@ -1,0 +1,79 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "LaunchOnlyReviewedPreparedImageAndNetwork",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:RunInstances"
+      ],
+      "Resource": [
+        {
+          "Fn::Sub": "arn:aws:ec2:__INSTALL_REGION__::image/${PreparedControllerImageId}"
+        },
+        {
+          "Fn::Sub": "arn:aws:ec2:__INSTALL_REGION__:__INSTALL_ACCOUNT__:subnet/${PilotSubnet}"
+        },
+        {
+          "Fn::Sub": "arn:aws:ec2:__INSTALL_REGION__:__INSTALL_ACCOUNT__:security-group/${ControllerSecurityGroup}"
+        }
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__"
+        }
+      }
+    },
+    {
+      "Sid": "LaunchOnlyTaggedControllerInstance",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:RunInstances"
+      ],
+      "Resource": "arn:aws:ec2:__INSTALL_REGION__:__INSTALL_ACCOUNT__:instance/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__",
+          "aws:RequestTag/Project": "agent-controller",
+          "ec2:InstanceType": "t3.small"
+        },
+        "Bool": {
+          "ec2:AssociatePublicIpAddress": "false"
+        }
+      }
+    },
+    {
+      "Sid": "CreateOnlyTaggedEncryptedLaunchVolumes",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:RunInstances"
+      ],
+      "Resource": "arn:aws:ec2:__INSTALL_REGION__:__INSTALL_ACCOUNT__:volume/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__",
+          "aws:RequestTag/Project": "agent-controller"
+        },
+        "Bool": {
+          "ec2:Encrypted": "true"
+        }
+      }
+    },
+    {
+      "Sid": "CreateOnlyPrivateLaunchNetworkInterface",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:RunInstances"
+      ],
+      "Resource": "arn:aws:ec2:__INSTALL_REGION__:__INSTALL_ACCOUNT__:network-interface/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__"
+        },
+        "Bool": {
+          "ec2:AssociatePublicIpAddress": "false"
+        }
+      }
+    }
+  ]
+}

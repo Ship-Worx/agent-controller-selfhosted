@@ -1,0 +1,21 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "OnlyReviewedAgentCoreRuntimeMayAssume",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "bedrock-agentcore.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole",
+      "Condition": {
+        "StringEquals": {
+          "aws:SourceAccount": "__INSTALL_ACCOUNT__"
+        },
+        "ArnEquals": {
+          "aws:SourceArn": "arn:aws:bedrock-agentcore:__INSTALL_REGION__:__INSTALL_ACCOUNT__:runtime/__REQUIRED_WORKER_RUNTIME_ID__"
+        }
+      }
+    }
+  ]
+}

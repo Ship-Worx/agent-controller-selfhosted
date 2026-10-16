@@ -1,0 +1,181 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DelegateKeyAdministrationToNamedProvisioningIdentities",
+      "Effect": "Allow",
+      "Action": [
+        "kms:DescribeKey",
+        "kms:GetKeyPolicy",
+        "kms:PutKeyPolicy",
+        "kms:ListResourceTags",
+        "kms:TagResource",
+        "kms:UpdateKeyDescription"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:PrincipalArn": [
+            "arn:aws:iam::__INSTALL_ACCOUNT__:role/agent-controller-pilot-deployment",
+            "__INSTALL_OPERATOR_ARN__"
+          ],
+          "kms:CallerAccount": "__INSTALL_ACCOUNT__"
+        }
+      },
+      "Principal": {
+        "AWS": "arn:aws:iam::__INSTALL_ACCOUNT__:root"
+      }
+    },
+    {
+      "Sid": "DelegateOnlySyntheticSecretDecryption",
+      "Effect": "Allow",
+      "Action": [
+        "kms:Decrypt"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:PrincipalArn": [
+            "arn:aws:iam::__INSTALL_ACCOUNT__:role/agent-controller-pilot-controller"
+          ],
+          "kms:CallerAccount": "__INSTALL_ACCOUNT__",
+          "kms:ViaService": "secretsmanager.__INSTALL_REGION__.amazonaws.com"
+        },
+        "StringLike": {
+          "kms:EncryptionContext:SecretARN": [
+            "arn:aws:secretsmanager:__INSTALL_REGION__:__INSTALL_ACCOUNT__:secret:agent-controller/pilot/admin-??????",
+            "arn:aws:secretsmanager:__INSTALL_REGION__:__INSTALL_ACCOUNT__:secret:agent-controller/pilot/tls-??????"
+          ]
+        }
+      },
+      "Principal": {
+        "AWS": "arn:aws:iam::__INSTALL_ACCOUNT__:root"
+      }
+    },
+    {
+      "Sid": "DelegateSyntheticSecretInitialization",
+      "Effect": "Allow",
+      "Action": [
+        "kms:GenerateDataKey",
+        "kms:Decrypt"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:PrincipalArn": [
+            "arn:aws:iam::__INSTALL_ACCOUNT__:role/agent-controller-pilot-deployment",
+            "__INSTALL_OPERATOR_ARN__"
+          ],
+          "kms:CallerAccount": "__INSTALL_ACCOUNT__",
+          "kms:ViaService": "secretsmanager.__INSTALL_REGION__.amazonaws.com"
+        },
+        "StringLike": {
+          "kms:EncryptionContext:SecretARN": [
+            "arn:aws:secretsmanager:__INSTALL_REGION__:__INSTALL_ACCOUNT__:secret:agent-controller/pilot/admin-??????",
+            "arn:aws:secretsmanager:__INSTALL_REGION__:__INSTALL_ACCOUNT__:secret:agent-controller/pilot/tls-??????"
+          ]
+        }
+      },
+      "Principal": {
+        "AWS": "arn:aws:iam::__INSTALL_ACCOUNT__:root"
+      }
+    },
+    {
+      "Sid": "DelegateEbsCryptographyToDeploymentOnly",
+      "Effect": "Allow",
+      "Action": [
+        "kms:Decrypt",
+        "kms:GenerateDataKeyWithoutPlaintext",
+        "kms:ReEncryptFrom",
+        "kms:ReEncryptTo"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:PrincipalArn": [
+            "arn:aws:iam::__INSTALL_ACCOUNT__:role/agent-controller-pilot-deployment"
+          ],
+          "kms:CallerAccount": "__INSTALL_ACCOUNT__",
+          "kms:ViaService": "ec2.__INSTALL_REGION__.amazonaws.com"
+        }
+      },
+      "Principal": {
+        "AWS": "arn:aws:iam::__INSTALL_ACCOUNT__:root"
+      }
+    },
+    {
+      "Sid": "DelegateOnlyAwsResourceGrants",
+      "Effect": "Allow",
+      "Action": [
+        "kms:CreateGrant"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:PrincipalArn": [
+            "arn:aws:iam::__INSTALL_ACCOUNT__:role/agent-controller-pilot-deployment"
+          ],
+          "kms:CallerAccount": "__INSTALL_ACCOUNT__"
+        },
+        "Bool": {
+          "kms:GrantIsForAWSResource": "true"
+        }
+      },
+      "Principal": {
+        "AWS": "arn:aws:iam::__INSTALL_ACCOUNT__:root"
+      }
+    },
+    {
+      "Sid": "DelegateAliasOnlyToNamedDeploymentRole",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::__INSTALL_ACCOUNT__:root"
+      },
+      "Action": [
+        "kms:CreateAlias"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:PrincipalArn": "arn:aws:iam::__INSTALL_ACCOUNT__:role/agent-controller-pilot-deployment",
+          "kms:CallerAccount": "__INSTALL_ACCOUNT__"
+        }
+      }
+    },
+    {
+      "Sid": "DelegateReviewedSevenDayCleanupOnlyToObservedAdministrator",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::__INSTALL_ACCOUNT__:root"
+      },
+      "Action": [
+        "kms:ScheduleKeyDeletion"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:PrincipalArn": "__INSTALL_OPERATOR_ARN__"
+        },
+        "NumericEquals": {
+          "kms:ScheduleKeyDeletionPendingWindowInDays": "7"
+        }
+      }
+    },
+    {
+      "Sid": "DelegateCleanupRecoveryOnlyToObservedAdministrator",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::__INSTALL_ACCOUNT__:root"
+      },
+      "Action": [
+        "kms:CancelKeyDeletion"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:PrincipalArn": "__INSTALL_OPERATOR_ARN__"
+        }
+      }
+    }
+  ]
+}

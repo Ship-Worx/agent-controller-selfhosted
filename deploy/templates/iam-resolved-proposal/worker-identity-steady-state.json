@@ -1,0 +1,59 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "PullOnlyDedicatedWorkerRepository",
+      "Effect": "Allow",
+      "Action": [
+        "ecr:BatchGetImage",
+        "ecr:GetDownloadUrlForLayer"
+      ],
+      "Resource": "arn:aws:ecr:__INSTALL_REGION__:__INSTALL_ACCOUNT__:repository/agent-controller-worker",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__"
+        }
+      }
+    },
+    {
+      "Sid": "RegionalEcrAuthenticationOnly",
+      "Effect": "Allow",
+      "Action": [
+        "ecr:GetAuthorizationToken"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__"
+        }
+      }
+    },
+    {
+      "Sid": "DescribeOnlySelectedEndpointLogStreams",
+      "Effect": "Allow",
+      "Action": [
+        "logs:DescribeLogStreams"
+      ],
+      "Resource": "__OBSERVED_PLATFORM_LOG_GROUP_ARN_NO_SUFFIX__:*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__"
+        }
+      }
+    },
+    {
+      "Sid": "WriteOnlySelectedEndpointLogStreams",
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": "__OBSERVED_PLATFORM_LOG_GROUP_ARN_NO_SUFFIX__:log-stream:*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+# Send only worker code and its hashed dependency lock to the build daemon.
+**
+!requirements.lock
+!integration/
+!integration/__init__.py
+!integration/client.py
+!integration/live_model.py
+!integration/live_worker.py
+!deploy/
+!deploy/agentcore_worker.py
+!deploy/worker.Dockerfile
+!deploy/worker.Dockerfile.dockerignore

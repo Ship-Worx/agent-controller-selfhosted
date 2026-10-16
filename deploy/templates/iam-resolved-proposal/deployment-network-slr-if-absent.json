@@ -1,0 +1,18 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "CreateOnlyAgentCoreNetworkServiceLinkedRole",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateServiceLinkedRole"
+      ],
+      "Resource": "arn:aws:iam::__INSTALL_ACCOUNT__:role/aws-service-role/network.bedrock-agentcore.amazonaws.com/AWSServiceRoleForBedrockAgentCoreNetwork",
+      "Condition": {
+        "StringEquals": {
+          "iam:AWSServiceName": "network.bedrock-agentcore.amazonaws.com"
+        }
+      }
+    }
+  ]
+}

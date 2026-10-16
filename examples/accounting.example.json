@@ -1,0 +1,13 @@
+{
+  "installation": {
+    "schema_version": 1,
+    "project_id": null,
+    "account_id": null,
+    "region": null,
+    "limit_microusd": null
+  },
+  "prior_spent_microusd": null,
+  "outstanding_reserved_microusd": null,
+  "evidence_refs": [],
+  "as_of": null
+}

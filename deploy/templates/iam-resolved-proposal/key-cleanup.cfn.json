@@ -1,0 +1,44 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ScheduleReviewedPilotKeyDeletionAfterRetentionRelease",
+      "Effect": "Allow",
+      "Action": [
+        "kms:ScheduleKeyDeletion"
+      ],
+      "Resource": {
+        "Fn::GetAtt": [
+          "PilotKey",
+          "Arn"
+        ]
+      },
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__"
+        },
+        "NumericEquals": {
+          "kms:ScheduleKeyDeletionPendingWindowInDays": "7"
+        }
+      }
+    },
+    {
+      "Sid": "CancelPendingPilotKeyDeletionForRecovery",
+      "Effect": "Allow",
+      "Action": [
+        "kms:CancelKeyDeletion"
+      ],
+      "Resource": {
+        "Fn::GetAtt": [
+          "PilotKey",
+          "Arn"
+        ]
+      },
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__"
+        }
+      }
+    }
+  ]
+}

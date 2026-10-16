@@ -1,0 +1,41 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "OnlyControllerAndFixedPortDocument",
+      "Effect": "Allow",
+      "Action": [
+        "ssm:StartSession"
+      ],
+      "Resource": [
+        {
+          "Fn::Sub": "arn:aws:ec2:__INSTALL_REGION__:__INSTALL_ACCOUNT__:instance/${Controller}"
+        },
+        "arn:aws:ssm:__INSTALL_REGION__:__INSTALL_ACCOUNT__:document/agent-controller-pilot-port"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__"
+        },
+        "BoolIfExists": {
+          "ssm:SessionDocumentAccessCheck": "true"
+        }
+      }
+    },
+    {
+      "Sid": "OnlyOwnSessionLifecycle",
+      "Effect": "Allow",
+      "Action": [
+        "ssm:ResumeSession",
+        "ssm:TerminateSession",
+        "ssmmessages:OpenDataChannel"
+      ],
+      "Resource": "arn:aws:ssm:__INSTALL_REGION__:__INSTALL_ACCOUNT__:session/${aws:userid}-*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__"
+        }
+      }
+    }
+  ]
+}

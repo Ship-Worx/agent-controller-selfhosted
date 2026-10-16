@@ -1,0 +1,52 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ReadOnlySyntheticAdminAndTlsSecrets",
+      "Effect": "Allow",
+      "Action": "secretsmanager:GetSecretValue",
+      "Resource": [
+        {
+          "Ref": "AdminSecret"
+        },
+        {
+          "Ref": "TlsSecret"
+        }
+      ]
+    },
+    {
+      "Sid": "DecryptOnlyDeclaredSecretsViaSecretsManager",
+      "Effect": "Allow",
+      "Action": "kms:Decrypt",
+      "Resource": {
+        "Fn::GetAtt": [
+          "PilotKey",
+          "Arn"
+        ]
+      },
+      "Condition": {
+        "StringEquals": {
+          "kms:ViaService": "secretsmanager.__INSTALL_REGION__.amazonaws.com",
+          "kms:CallerAccount": "__INSTALL_ACCOUNT__",
+          "kms:EncryptionContext:SecretARN": [
+            {
+              "Ref": "AdminSecret"
+            },
+            {
+              "Ref": "TlsSecret"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "WriteOnlyNamedControllerLogStreams",
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": "arn:aws:logs:__INSTALL_REGION__:__INSTALL_ACCOUNT__:log-group:/agent-controller/agent-controller-pilot/controller:log-stream:*"
+    }
+  ]
+}

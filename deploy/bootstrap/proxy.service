@@ -1,0 +1,39 @@
+[Unit]
+Description=Agent Controller worker-only private TLS proxy
+Requires=agent-controller.service
+After=agent-controller.service
+BindsTo=agent-controller.service
+ConditionPathExists=/etc/agent-controller/activation.json
+
+[Service]
+Type=simple
+User=agent-controller-proxy
+Group=agent-controller-proxy
+WorkingDirectory=/opt/agent-controller
+RuntimeDirectory=agent-controller-proxy
+RuntimeDirectoryMode=0700
+UMask=0077
+ExecStart=/opt/agent-controller/.venv/bin/python -I -B /opt/agent-controller/deploy/bootstrap/launch.py proxy
+Restart=no
+RuntimeMaxSec=7200
+TimeoutStopSec=15
+KillMode=control-group
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+AmbientCapabilities=
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_NETLINK
+ReadWritePaths=/run/agent-controller-proxy
+InaccessiblePaths=-/srv/controller-volume -/run/agent-controller-secrets -/run/agent-controller
+StandardOutput=null
+StandardError=null
+
+# No [Install] section; reviewed explicit activation follows all preflights.

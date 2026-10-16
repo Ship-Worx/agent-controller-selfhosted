@@ -1,0 +1,119 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DeleteOnlyReturnedPilotEndpoint",
+      "Effect": "Allow",
+      "Action": [
+        "bedrock-agentcore:DeleteAgentRuntimeEndpoint"
+      ],
+      "Resource": "__OBSERVED_SELECTED_ENDPOINT_ARN__",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__"
+        }
+      }
+    },
+    {
+      "Sid": "DeleteOnlyReturnedRuntime",
+      "Effect": "Allow",
+      "Action": [
+        "bedrock-agentcore:DeleteAgentRuntime"
+      ],
+      "Resource": "__OBSERVED_AGENT_RUNTIME_ARN__",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__"
+        }
+      }
+    },
+    {
+      "Sid": "TerminateOnlyReturnedController",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:TerminateInstances"
+      ],
+      "Resource": {
+        "Fn::Sub": "arn:aws:ec2:__INSTALL_REGION__:__INSTALL_ACCOUNT__:instance/${Controller}"
+      },
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__"
+        }
+      }
+    },
+    {
+      "Sid": "DeleteOnlySevenReturnedPilotVpcEndpoints",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:DeleteVpcEndpoints"
+      ],
+      "Resource": [
+        {
+          "Fn::Sub": "arn:aws:ec2:__INSTALL_REGION__:__INSTALL_ACCOUNT__:vpc-endpoint/${EcrApiEndpoint}"
+        },
+        {
+          "Fn::Sub": "arn:aws:ec2:__INSTALL_REGION__:__INSTALL_ACCOUNT__:vpc-endpoint/${EcrDockerEndpoint}"
+        },
+        {
+          "Fn::Sub": "arn:aws:ec2:__INSTALL_REGION__:__INSTALL_ACCOUNT__:vpc-endpoint/${LogsEndpoint}"
+        },
+        {
+          "Fn::Sub": "arn:aws:ec2:__INSTALL_REGION__:__INSTALL_ACCOUNT__:vpc-endpoint/${SecretsManagerEndpoint}"
+        },
+        {
+          "Fn::Sub": "arn:aws:ec2:__INSTALL_REGION__:__INSTALL_ACCOUNT__:vpc-endpoint/${SsmEndpoint}"
+        },
+        {
+          "Fn::Sub": "arn:aws:ec2:__INSTALL_REGION__:__INSTALL_ACCOUNT__:vpc-endpoint/${SsmMessagesEndpoint}"
+        },
+        {
+          "Fn::Sub": "arn:aws:ec2:__INSTALL_REGION__:__INSTALL_ACCOUNT__:vpc-endpoint/${S3GatewayEndpoint}"
+        }
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__"
+        }
+      }
+    },
+    {
+      "Sid": "DeleteOnlyControllerPrivateARecord",
+      "Effect": "Allow",
+      "Action": [
+        "route53:ChangeResourceRecordSets"
+      ],
+      "Resource": {
+        "Fn::Sub": "arn:aws:route53:::hostedzone/${PrivateHostedZone}"
+      },
+      "Condition": {
+        "ForAllValues:StringEquals": {
+          "route53:ChangeResourceRecordSetsNormalizedRecordNames": [
+            "controller.agent-controller.internal"
+          ],
+          "route53:ChangeResourceRecordSetsRecordTypes": [
+            "A"
+          ],
+          "route53:ChangeResourceRecordSetsActions": [
+            "DELETE"
+          ]
+        },
+        "Null": {
+          "route53:ChangeResourceRecordSetsNormalizedRecordNames": "false",
+          "route53:ChangeResourceRecordSetsRecordTypes": "false",
+          "route53:ChangeResourceRecordSetsActions": "false"
+        }
+      }
+    },
+    {
+      "Sid": "DeleteOnlyReturnedPrivateHostedZone",
+      "Effect": "Allow",
+      "Action": [
+        "route53:DeleteHostedZone"
+      ],
+      "Resource": {
+        "Fn::Sub": "arn:aws:route53:::hostedzone/${PrivateHostedZone}"
+      }
+    }
+  ]
+}

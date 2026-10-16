@@ -1,0 +1,95 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DeleteOnlyReleasedRetainedDataVolume",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:DeleteVolume"
+      ],
+      "Resource": {
+        "Fn::Sub": "arn:aws:ec2:__INSTALL_REGION__:__INSTALL_ACCOUNT__:volume/${ControllerDataVolume}"
+      },
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__"
+        }
+      }
+    },
+    {
+      "Sid": "ScheduleOnlyReleasedSyntheticSecretsForDeletion",
+      "Effect": "Allow",
+      "Action": [
+        "secretsmanager:DeleteSecret"
+      ],
+      "Resource": [
+        {
+          "Ref": "AdminSecret"
+        },
+        {
+          "Ref": "TlsSecret"
+        }
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__"
+        },
+        "NumericEquals": {
+          "secretsmanager:RecoveryWindowInDays": "7"
+        },
+        "BoolIfExists": {
+          "secretsmanager:ForceDeleteWithoutRecovery": "false"
+        }
+      }
+    },
+    {
+      "Sid": "DeleteOnlyReleasedWorkerRepository",
+      "Effect": "Allow",
+      "Action": [
+        "ecr:DeleteRepository"
+      ],
+      "Resource": {
+        "Fn::GetAtt": [
+          "WorkerRepository",
+          "Arn"
+        ]
+      },
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__"
+        }
+      }
+    },
+    {
+      "Sid": "DeleteOnlyReleasedControllerLogGroup",
+      "Effect": "Allow",
+      "Action": [
+        "logs:DeleteLogGroup"
+      ],
+      "Resource": {
+        "Fn::GetAtt": [
+          "ControllerLogGroup",
+          "Arn"
+        ]
+      },
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__"
+        }
+      }
+    },
+    {
+      "Sid": "DeleteOnlyReleasedWorkerPlatformLogGroup",
+      "Effect": "Allow",
+      "Action": [
+        "logs:DeleteLogGroup"
+      ],
+      "Resource": "__OBSERVED_PLATFORM_LOG_GROUP_ARN_NO_SUFFIX__:*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__"
+        }
+      }
+    }
+  ]
+}

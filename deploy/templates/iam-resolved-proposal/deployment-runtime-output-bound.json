@@ -1,0 +1,102 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ConfigureOnlyReturnedRuntime",
+      "Effect": "Allow",
+      "Action": [
+        "bedrock-agentcore:GetAgentRuntime",
+        "bedrock-agentcore:CreateAgentRuntimeEndpoint",
+        "bedrock-agentcore:TagResource"
+      ],
+      "Resource": "__OBSERVED_AGENT_RUNTIME_ARN__",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__"
+        }
+      }
+    },
+    {
+      "Sid": "ReadOnlyReviewedEndpoint",
+      "Effect": "Allow",
+      "Action": [
+        "bedrock-agentcore:GetAgentRuntimeEndpoint"
+      ],
+      "Resource": "__OBSERVED_SELECTED_ENDPOINT_ARN__",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__"
+        }
+      }
+    },
+    {
+      "Sid": "CreateOnlyTaggedReturnedRuntimeLogGroup",
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup"
+      ],
+      "Resource": "__OBSERVED_PLATFORM_LOG_GROUP_ARN_NO_SUFFIX__:*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__",
+          "aws:RequestTag/Project": "agent-controller"
+        }
+      }
+    },
+    {
+      "Sid": "RetainOnlyReturnedRuntimeLogGroup",
+      "Effect": "Allow",
+      "Action": [
+        "logs:PutRetentionPolicy"
+      ],
+      "Resource": "__OBSERVED_PLATFORM_LOG_GROUP_ARN_NO_SUFFIX__:*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__"
+        }
+      }
+    },
+    {
+      "Sid": "TagOnlyReturnedRuntimeLogGroup",
+      "Effect": "Allow",
+      "Action": [
+        "logs:TagResource"
+      ],
+      "Resource": "__OBSERVED_PLATFORM_LOG_GROUP_ARN_NO_SUFFIX__",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__"
+        }
+      }
+    },
+    {
+      "Sid": "UpdateOnlyReturnedRuntimeInPrivateNetwork",
+      "Effect": "Allow",
+      "Action": [
+        "bedrock-agentcore:UpdateAgentRuntime"
+      ],
+      "Resource": "__OBSERVED_AGENT_RUNTIME_ARN__",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__"
+        },
+        "Null": {
+          "bedrock-agentcore:subnets": "false",
+          "bedrock-agentcore:securityGroups": "false"
+        },
+        "ForAllValues:StringEquals": {
+          "bedrock-agentcore:subnets": [
+            {
+              "Ref": "PilotSubnet"
+            }
+          ],
+          "bedrock-agentcore:securityGroups": [
+            {
+              "Ref": "WorkerSecurityGroup"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

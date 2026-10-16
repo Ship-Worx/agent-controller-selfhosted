@@ -1,0 +1,365 @@
+{
+  "Metadata": {
+    "Status": "review_only_policy_fragments_not_a_deployable_template",
+    "AccountId": "__INSTALL_ACCOUNT__",
+    "Region": "__INSTALL_REGION__",
+    "PoliciesApplied": false,
+    "AwsValidationPerformed": false,
+    "Integration": "Copy each PolicyDocuments value into only the named new endpoint's PolicyDocument. Merge Parameters separately. This file is not a CloudFormation Mappings section or a standalone template.",
+    "EndpointServices": {
+      "EcrApi": "com.amazonaws.__INSTALL_REGION__.ecr.api",
+      "EcrDocker": "com.amazonaws.__INSTALL_REGION__.ecr.dkr",
+      "Logs": "com.amazonaws.__INSTALL_REGION__.logs",
+      "SecretsManager": "com.amazonaws.__INSTALL_REGION__.secretsmanager",
+      "Ssm": "com.amazonaws.__INSTALL_REGION__.ssm",
+      "SsmMessages": "com.amazonaws.__INSTALL_REGION__.ssmmessages",
+      "S3Gateway": "com.amazonaws.__INSTALL_REGION__.s3"
+    },
+    "EndpointSecurityGroups": {
+      "EcrApi": [
+        "WorkerEndpointSecurityGroup"
+      ],
+      "EcrDocker": [
+        "WorkerEndpointSecurityGroup"
+      ],
+      "Logs": [
+        "WorkerEndpointSecurityGroup",
+        "ControllerEndpointSecurityGroup"
+      ],
+      "SecretsManager": [
+        "ControllerEndpointSecurityGroup"
+      ],
+      "Ssm": [
+        "ControllerEndpointSecurityGroup"
+      ],
+      "SsmMessages": [
+        "ControllerEndpointSecurityGroup"
+      ]
+    },
+    "NetworkIntegration": "Each endpoint SG admits only its corresponding worker/controller source SG on TCP 443. The Logs endpoint has both endpoint SGs; separate role/action/resource statements enforce its intended authorization split. S3Gateway has route-table associations and prefix-list egress, not endpoint SGs. Existing/default/shared endpoints and security groups must not be modified.",
+    "WildcardRationale": {
+      "EcrAuthentication": "GetAuthorizationToken uses Resource *; exact WorkerRole and __INSTALL_REGION__ conditions constrain this endpoint filter. Repository pull remains exact and repository push is absent.",
+      "SessionManager": "The official minimal EC2 Session Manager policy uses Resource * for UpdateInstanceInformation and the four named channel actions. This proposal preserves that resource form with exact ControllerRole and __INSTALL_REGION__, without claiming instance/session resource restriction or a grant to start operator sessions.",
+      "S3Gateway": "Gateway endpoint Principal * is required by its policy contract. Only GetObject for the regional ECR layer bucket is allowed. This is an endpoint filter, not a public bucket policy or new worker identity grant; no guessed execution-role condition is added to service-mediated image-layer requests.",
+      "Logs": "ControllerLogGroup.Arn already contains the log-group :* IAM suffix and is used without appending another suffix. WorkerPlatformLogGroupArn must have no suffix; describe and stream-write suffixes are added separately. Wildcards stay under one exact group per role."
+    },
+    "AcceptanceGates": [
+      "Confirm VpcEndpointPolicySupported for each selected regional interface endpoint service before applying these fragments; ssmmessages support has not been independently observed. Unsupported or unverified filtering must block integration, not silently become default full access.",
+      "Verify service-mediated AgentCore ECR requests and log delivery present the proposed WorkerRole principal and requested-region context. The role-specific endpoint filter is proposed, not observed accepted; no service-principal or account-wide fallback is authorized.",
+      "Resolve exact WorkerPlatformLogGroupArn from the returned runtime ID and reviewed PILOT endpoint. Precreate/tag/retain the exact log group through the separately reviewed provisioning path. Generated-ID bootstrap and possible DEFAULT logging remain unresolved; this policy does not create log groups or grant runtime-prefix logging.",
+      "Use an already provisioned compatible EC2 SSM Agent using instance-profile SigV4 credentials and ssmmessages. Agent updates, patching, downloads, Run Command, State Manager and hybrid registration are not enabled. S3 is ECR-layer-only and does not cover SSM package buckets.",
+      "Operator StartSession and client-side channel access occur through a separately reviewed operator path. These SSM endpoint policies authorize only the controller node; they do not establish operator connectivity, transcript logging or optional KMS session encryption.",
+      "Observe effective role, repository, log, secret, key, organization and endpoint policies plus deployed denied-role/resource tests. Endpoint filters add restrictions; they do not replace identity policies or prove network isolation.",
+      "Ensure final resource ARNs and intrinsic references resolve only inside account __INSTALL_ACCOUNT__ and __INSTALL_REGION__; require Project=agent-controller on each new taggable endpoint and its separately reviewed resources.",
+      "No provider-secret read, provider egress or live-model invocation belongs to this synthetic stage. No resource creation or security change is authorized by these fragments."
+    ],
+    "Sources": [
+      "https://docs.aws.amazon.com/AmazonECR/latest/userguide/vpc-endpoints.html",
+      "https://docs.aws.amazon.com/systems-manager/latest/userguide/setup-create-vpc.html",
+      "https://docs.aws.amazon.com/systems-manager/latest/userguide/getting-started-create-iam-instance-profile.html",
+      "https://docs.aws.amazon.com/vpc/latest/privatelink/vpc-endpoints-access.html",
+      "https://docs.aws.amazon.com/vpc/latest/privatelink/aws-services-privatelink-support.html"
+    ]
+  },
+  "Parameters": {
+    "WorkerPlatformLogGroupArn": {
+      "Type": "String",
+      "AllowedPattern": "arn:aws:logs:__INSTALL_REGION__:__INSTALL_ACCOUNT__:log-group:/aws/bedrock-agentcore/runtimes/agent_controller_pilot-[A-Za-z0-9]{10}-PILOT",
+      "Description": "Exact approved and observed PILOT platform log-group ARN without :* or a stream suffix. Required after generated runtime ID is known; not a bootstrap workaround."
+    }
+  },
+  "PolicyDocuments": {
+    "EcrApi": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "OnlyWorkerRegionalAuthentication",
+          "Effect": "Allow",
+          "Principal": {
+            "AWS": {
+              "Fn::GetAtt": [
+                "WorkerRole",
+                "Arn"
+              ]
+            }
+          },
+          "Action": [
+            "ecr:GetAuthorizationToken"
+          ],
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:RequestedRegion": "__INSTALL_REGION__"
+            }
+          }
+        },
+        {
+          "Sid": "OnlyWorkerPullFromDedicatedRepository",
+          "Effect": "Allow",
+          "Principal": {
+            "AWS": {
+              "Fn::GetAtt": [
+                "WorkerRole",
+                "Arn"
+              ]
+            }
+          },
+          "Action": [
+            "ecr:BatchGetImage",
+            "ecr:GetDownloadUrlForLayer"
+          ],
+          "Resource": {
+            "Fn::GetAtt": [
+              "WorkerRepository",
+              "Arn"
+            ]
+          },
+          "Condition": {
+            "StringEquals": {
+              "aws:RequestedRegion": "__INSTALL_REGION__"
+            }
+          }
+        }
+      ]
+    },
+    "EcrDocker": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "OnlyWorkerRegionalAuthentication",
+          "Effect": "Allow",
+          "Principal": {
+            "AWS": {
+              "Fn::GetAtt": [
+                "WorkerRole",
+                "Arn"
+              ]
+            }
+          },
+          "Action": [
+            "ecr:GetAuthorizationToken"
+          ],
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:RequestedRegion": "__INSTALL_REGION__"
+            }
+          }
+        },
+        {
+          "Sid": "OnlyWorkerPullFromDedicatedRepository",
+          "Effect": "Allow",
+          "Principal": {
+            "AWS": {
+              "Fn::GetAtt": [
+                "WorkerRole",
+                "Arn"
+              ]
+            }
+          },
+          "Action": [
+            "ecr:BatchGetImage",
+            "ecr:GetDownloadUrlForLayer"
+          ],
+          "Resource": {
+            "Fn::GetAtt": [
+              "WorkerRepository",
+              "Arn"
+            ]
+          },
+          "Condition": {
+            "StringEquals": {
+              "aws:RequestedRegion": "__INSTALL_REGION__"
+            }
+          }
+        }
+      ]
+    },
+    "Logs": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "OnlyControllerApplicationLogWrites",
+          "Effect": "Allow",
+          "Principal": {
+            "AWS": {
+              "Fn::GetAtt": [
+                "ControllerRole",
+                "Arn"
+              ]
+            }
+          },
+          "Action": [
+            "logs:CreateLogStream",
+            "logs:PutLogEvents"
+          ],
+          "Resource": {
+            "Fn::GetAtt": [
+              "ControllerLogGroup",
+              "Arn"
+            ]
+          },
+          "Condition": {
+            "StringEquals": {
+              "aws:RequestedRegion": "__INSTALL_REGION__"
+            }
+          }
+        },
+        {
+          "Sid": "OnlyWorkerDescribeSelectedEndpointStreams",
+          "Effect": "Allow",
+          "Principal": {
+            "AWS": {
+              "Fn::GetAtt": [
+                "WorkerRole",
+                "Arn"
+              ]
+            }
+          },
+          "Action": [
+            "logs:DescribeLogStreams"
+          ],
+          "Resource": {
+            "Fn::Sub": "${WorkerPlatformLogGroupArn}:*"
+          },
+          "Condition": {
+            "StringEquals": {
+              "aws:RequestedRegion": "__INSTALL_REGION__"
+            }
+          }
+        },
+        {
+          "Sid": "OnlyWorkerWriteSelectedEndpointStreams",
+          "Effect": "Allow",
+          "Principal": {
+            "AWS": {
+              "Fn::GetAtt": [
+                "WorkerRole",
+                "Arn"
+              ]
+            }
+          },
+          "Action": [
+            "logs:CreateLogStream",
+            "logs:PutLogEvents"
+          ],
+          "Resource": {
+            "Fn::Sub": "${WorkerPlatformLogGroupArn}:log-stream:*"
+          },
+          "Condition": {
+            "StringEquals": {
+              "aws:RequestedRegion": "__INSTALL_REGION__"
+            }
+          }
+        }
+      ]
+    },
+    "SecretsManager": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "OnlyControllerAdminAndTlsSecretReads",
+          "Effect": "Allow",
+          "Principal": {
+            "AWS": {
+              "Fn::GetAtt": [
+                "ControllerRole",
+                "Arn"
+              ]
+            }
+          },
+          "Action": [
+            "secretsmanager:GetSecretValue"
+          ],
+          "Resource": [
+            {
+              "Ref": "AdminSecret"
+            },
+            {
+              "Ref": "TlsSecret"
+            }
+          ],
+          "Condition": {
+            "StringEquals": {
+              "aws:RequestedRegion": "__INSTALL_REGION__"
+            }
+          }
+        }
+      ]
+    },
+    "Ssm": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "OnlyControllerHeartbeat",
+          "Effect": "Allow",
+          "Principal": {
+            "AWS": {
+              "Fn::GetAtt": [
+                "ControllerRole",
+                "Arn"
+              ]
+            }
+          },
+          "Action": [
+            "ssm:UpdateInstanceInformation"
+          ],
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:RequestedRegion": "__INSTALL_REGION__"
+            }
+          }
+        }
+      ]
+    },
+    "SsmMessages": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "OnlyControllerSessionChannels",
+          "Effect": "Allow",
+          "Principal": {
+            "AWS": {
+              "Fn::GetAtt": [
+                "ControllerRole",
+                "Arn"
+              ]
+            }
+          },
+          "Action": [
+            "ssmmessages:CreateControlChannel",
+            "ssmmessages:CreateDataChannel",
+            "ssmmessages:OpenControlChannel",
+            "ssmmessages:OpenDataChannel"
+          ],
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "aws:RequestedRegion": "__INSTALL_REGION__"
+            }
+          }
+        }
+      ]
+    },
+    "S3Gateway": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "OnlyRegionalEcrLayerDownloads",
+          "Effect": "Allow",
+          "Principal": "*",
+          "Action": [
+            "s3:GetObject"
+          ],
+          "Resource": "arn:aws:s3:::prod-__INSTALL_REGION__-starport-layer-bucket/*",
+          "Condition": {
+            "StringEquals": {
+              "aws:RequestedRegion": "__INSTALL_REGION__"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

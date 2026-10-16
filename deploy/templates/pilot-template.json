@@ -1,0 +1,582 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Agent Controller installation foundation; review draft, not a complete application deployment.",
+  "Metadata": {
+    "AgentControllerReview": {
+      "release_ready": false,
+      "target_account": "__INSTALL_ACCOUNT__",
+      "target_region": "__INSTALL_REGION__",
+      "cumulative_project_ceiling_usd": "__INSTALL_CEILING_USD__",
+      "includes_prior_spend_and_holds": true,
+      "required_resource_tag": {
+        "Project": "agent-controller"
+      },
+      "budget_monitor_provides_reconciliation_or_spend_stop": false,
+      "budget_reconciled": false,
+      "security_changes_approved": false,
+      "scope": "Controller foundation only; no bootstrap, secret creation, worker role or AgentCore runtime",
+      "pending": [
+        "Existing private VPC, endpoint and restricted provider-proxy inventory",
+        "AMI containing reviewed code with application disabled until explicit state provisioning",
+        "Exact secret ARNs, existing CMKs and effective resource policies",
+        "Volume initialization, mount identity, external recovery checkpoint and service activation",
+        "Operator authentication, DNS, TLS and deployed network denial checks",
+        "Worker ARM64 artifact, AgentCore role/network/logging contract and runtime template",
+        "Reconciled lifetime reservation, shutdown owner and cleanup deadline",
+        "Action-specific security approval and reviewed final change set"
+      ],
+      "project_id": "__INSTALL_PROJECT__"
+    }
+  },
+  "Parameters": {
+    "VpcId": {
+      "Type": "AWS::EC2::VPC::Id",
+      "Description": "Reviewed existing private VPC; must match all supplied subnets and peer security groups."
+    },
+    "ControllerSubnetId": {
+      "Type": "AWS::EC2::Subnet::Id",
+      "Description": "Reviewed existing private IPv4 subnet with no public IPv6 assignment and approved AWS endpoint/proxy connectivity."
+    },
+    "ControllerAvailabilityZone": {
+      "Type": "AWS::EC2::AvailabilityZone::Name",
+      "AllowedPattern": "__INSTALL_REGION__[a-z]",
+      "Description": "Observed AZ of ControllerSubnetId; data volume and controller must share this AZ."
+    },
+    "ControllerAmiId": {
+      "Type": "AWS::EC2::Image::Id",
+      "Description": "Reviewed immutable x86_64 EBS AMI with application activation disabled; no bootstrap/download occurs in this template."
+    },
+    "ControllerRootDeviceName": {
+      "Type": "String",
+      "AllowedValues": [
+        "/dev/xvda",
+        "/dev/sda1"
+      ],
+      "Description": "Observed root device name of ControllerAmiId, whose minimum root size must be at most 8 GiB."
+    },
+    "EbsKmsKeyArn": {
+      "Type": "String",
+      "AllowedPattern": "arn:aws:kms:__INSTALL_REGION__:__INSTALL_ACCOUNT__:key/(?:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|mrk-[0-9a-f]{32})",
+      "Description": "Reviewed existing symmetric encryption key for root/data EBS; this template does not change its policy or create a key."
+    },
+    "SecretsKmsKeyArn": {
+      "Type": "String",
+      "AllowedPattern": "arn:aws:kms:__INSTALL_REGION__:__INSTALL_ACCOUNT__:key/(?:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|mrk-[0-9a-f]{32})",
+      "Description": "Reviewed existing symmetric encryption key used by exactly the three controller secrets."
+    },
+    "ProviderSecretArn": {
+      "Type": "String",
+      "AllowedPattern": "arn:aws:secretsmanager:__INSTALL_REGION__:__INSTALL_ACCOUNT__:secret:[A-Za-z0-9/_+=.@-]+-[A-Za-z0-9]{6}",
+      "Description": "Exact existing provider secret ARN including suffix, never its value."
+    },
+    "AdminSecretArn": {
+      "Type": "String",
+      "AllowedPattern": "arn:aws:secretsmanager:__INSTALL_REGION__:__INSTALL_ACCOUNT__:secret:[A-Za-z0-9/_+=.@-]+-[A-Za-z0-9]{6}",
+      "Description": "Exact existing controller admin secret ARN including suffix, never its value."
+    },
+    "TlsSecretArn": {
+      "Type": "String",
+      "AllowedPattern": "arn:aws:secretsmanager:__INSTALL_REGION__:__INSTALL_ACCOUNT__:secret:[A-Za-z0-9/_+=.@-]+-[A-Za-z0-9]{6}",
+      "Description": "Exact existing private TLS material secret ARN including suffix, never its value."
+    },
+    "AwsEndpointsSecurityGroupId": {
+      "Type": "AWS::EC2::SecurityGroup::Id",
+      "Description": "Reviewed existing SG attached only to required AWS interface endpoints; reciprocal rules/policies require separate review."
+    },
+    "ProviderProxySecurityGroupId": {
+      "Type": "AWS::EC2::SecurityGroup::Id",
+      "Description": "Reviewed existing restricted provider HTTPS proxy SG; not a generic internet egress gateway."
+    },
+    "ProviderProxyPort": {
+      "Type": "Number",
+      "MinValue": 1,
+      "MaxValue": 65535,
+      "Description": "One exact existing restricted provider-proxy TCP listener port."
+    }
+  },
+  "Conditions": {
+    "ReviewedAccountAndRegion": {
+      "Fn::And": [
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "AWS::AccountId"
+            },
+            "__INSTALL_ACCOUNT__"
+          ]
+        },
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "AWS::Region"
+            },
+            "__INSTALL_REGION__"
+          ]
+        }
+      ]
+    }
+  },
+  "Resources": {
+    "ControllerLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Condition": "ReviewedAccountAndRegion",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "LogGroupName": {
+          "Fn::Sub": "/agent-controller/${AWS::StackName}/controller"
+        },
+        "RetentionInDays": 7,
+        "Tags": [
+          {
+            "Key": "Project",
+            "Value": "agent-controller"
+          },
+          {
+            "Key": "Environment",
+            "Value": "synthetic-pilot"
+          }
+        ]
+      }
+    },
+    "WorkerApplicationLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Condition": "ReviewedAccountAndRegion",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "LogGroupName": {
+          "Fn::Sub": "/agent-controller/${AWS::StackName}/worker"
+        },
+        "RetentionInDays": 7,
+        "Tags": [
+          {
+            "Key": "Project",
+            "Value": "agent-controller"
+          },
+          {
+            "Key": "Environment",
+            "Value": "synthetic-pilot"
+          }
+        ]
+      }
+    },
+    "WorkerImageRepository": {
+      "Type": "AWS::ECR::Repository",
+      "Condition": "ReviewedAccountAndRegion",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "EncryptionConfiguration": {
+          "EncryptionType": "AES256"
+        },
+        "ImageTagMutability": "IMMUTABLE",
+        "EmptyOnDelete": false,
+        "Tags": [
+          {
+            "Key": "Project",
+            "Value": "agent-controller"
+          },
+          {
+            "Key": "Environment",
+            "Value": "synthetic-pilot"
+          }
+        ]
+      }
+    },
+    "ControllerRole": {
+      "Type": "AWS::IAM::Role",
+      "Condition": "ReviewedAccountAndRegion",
+      "Properties": {
+        "Description": "Controller-only secret read and redacted application log writer; proposed policy, pending action-specific approval.",
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "ec2.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "ControllerExactSecretsAndLogs",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Sid": "ReadOnlyNamedControllerSecrets",
+                  "Effect": "Allow",
+                  "Action": [
+                    "secretsmanager:GetSecretValue"
+                  ],
+                  "Resource": [
+                    {
+                      "Ref": "ProviderSecretArn"
+                    },
+                    {
+                      "Ref": "AdminSecretArn"
+                    },
+                    {
+                      "Ref": "TlsSecretArn"
+                    }
+                  ]
+                },
+                {
+                  "Sid": "DecryptOnlyNamedSecretsViaSecretsManager",
+                  "Effect": "Allow",
+                  "Action": [
+                    "kms:Decrypt"
+                  ],
+                  "Resource": {
+                    "Ref": "SecretsKmsKeyArn"
+                  },
+                  "Condition": {
+                    "StringEquals": {
+                      "kms:ViaService": "secretsmanager.__INSTALL_REGION__.amazonaws.com",
+                      "kms:CallerAccount": "__INSTALL_ACCOUNT__",
+                      "kms:EncryptionContext:SecretARN": [
+                        {
+                          "Ref": "ProviderSecretArn"
+                        },
+                        {
+                          "Ref": "AdminSecretArn"
+                        },
+                        {
+                          "Ref": "TlsSecretArn"
+                        }
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Sid": "WriteControllerLogStreamsOnly",
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:${ControllerLogGroup}:log-stream:*"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Project",
+            "Value": "agent-controller"
+          },
+          {
+            "Key": "Environment",
+            "Value": "synthetic-pilot"
+          }
+        ]
+      }
+    },
+    "ControllerInstanceProfile": {
+      "Type": "AWS::IAM::InstanceProfile",
+      "Condition": "ReviewedAccountAndRegion",
+      "Properties": {
+        "Roles": [
+          {
+            "Ref": "ControllerRole"
+          }
+        ]
+      }
+    },
+    "ControllerSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Condition": "ReviewedAccountAndRegion",
+      "Properties": {
+        "GroupDescription": "Controller: worker TLS ingress, exact approved proxy and AWS endpoints egress only",
+        "VpcId": {
+          "Ref": "VpcId"
+        },
+        "SecurityGroupEgress": [
+          {
+            "Description": "Existing restricted provider proxy",
+            "IpProtocol": "tcp",
+            "FromPort": {
+              "Ref": "ProviderProxyPort"
+            },
+            "ToPort": {
+              "Ref": "ProviderProxyPort"
+            },
+            "DestinationSecurityGroupId": {
+              "Ref": "ProviderProxySecurityGroupId"
+            }
+          },
+          {
+            "Description": "Existing reviewed AWS interface endpoints",
+            "IpProtocol": "tcp",
+            "FromPort": 443,
+            "ToPort": 443,
+            "DestinationSecurityGroupId": {
+              "Ref": "AwsEndpointsSecurityGroupId"
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Project",
+            "Value": "agent-controller"
+          },
+          {
+            "Key": "Environment",
+            "Value": "synthetic-pilot"
+          }
+        ]
+      }
+    },
+    "WorkerSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Condition": "ReviewedAccountAndRegion",
+      "Properties": {
+        "GroupDescription": "Future isolated worker: private controller TLS and reviewed AWS endpoints only, no inbound rules",
+        "VpcId": {
+          "Ref": "VpcId"
+        },
+        "SecurityGroupEgress": [
+          {
+            "Description": "Worker route allowlist on private controller",
+            "IpProtocol": "tcp",
+            "FromPort": 8443,
+            "ToPort": 8443,
+            "DestinationSecurityGroupId": {
+              "Fn::GetAtt": [
+                "ControllerSecurityGroup",
+                "GroupId"
+              ]
+            }
+          },
+          {
+            "Description": "Existing reviewed AWS interface endpoints",
+            "IpProtocol": "tcp",
+            "FromPort": 443,
+            "ToPort": 443,
+            "DestinationSecurityGroupId": {
+              "Ref": "AwsEndpointsSecurityGroupId"
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Project",
+            "Value": "agent-controller"
+          },
+          {
+            "Key": "Environment",
+            "Value": "synthetic-pilot"
+          }
+        ]
+      }
+    },
+    "WorkerToControllerTls": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Condition": "ReviewedAccountAndRegion",
+      "Properties": {
+        "Description": "Only future worker SG reaches worker TLS listener; application rejects admin routes",
+        "GroupId": {
+          "Fn::GetAtt": [
+            "ControllerSecurityGroup",
+            "GroupId"
+          ]
+        },
+        "IpProtocol": "tcp",
+        "FromPort": 8443,
+        "ToPort": 8443,
+        "SourceSecurityGroupId": {
+          "Fn::GetAtt": [
+            "WorkerSecurityGroup",
+            "GroupId"
+          ]
+        }
+      }
+    },
+    "ControllerDataVolume": {
+      "Type": "AWS::EC2::Volume",
+      "Condition": "ReviewedAccountAndRegion",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "AvailabilityZone": {
+          "Ref": "ControllerAvailabilityZone"
+        },
+        "Encrypted": true,
+        "KmsKeyId": {
+          "Ref": "EbsKmsKeyArn"
+        },
+        "VolumeType": "gp3",
+        "Size": 16,
+        "MultiAttachEnabled": false,
+        "Tags": [
+          {
+            "Key": "Project",
+            "Value": "agent-controller"
+          },
+          {
+            "Key": "Environment",
+            "Value": "synthetic-pilot"
+          },
+          {
+            "Key": "Purpose",
+            "Value": "durable-authority-do-not-reinitialize"
+          }
+        ]
+      }
+    },
+    "ControllerInstance": {
+      "Type": "AWS::EC2::Instance",
+      "Condition": "ReviewedAccountAndRegion",
+      "Properties": {
+        "AvailabilityZone": {
+          "Ref": "ControllerAvailabilityZone"
+        },
+        "ImageId": {
+          "Ref": "ControllerAmiId"
+        },
+        "InstanceType": "t3.small",
+        "PropagateTagsToVolumeOnCreation": true,
+        "IamInstanceProfile": {
+          "Ref": "ControllerInstanceProfile"
+        },
+        "CreditSpecification": {
+          "CPUCredits": "standard"
+        },
+        "InstanceInitiatedShutdownBehavior": "stop",
+        "MetadataOptions": {
+          "HttpEndpoint": "enabled",
+          "HttpTokens": "required",
+          "HttpPutResponseHopLimit": 1,
+          "HttpProtocolIpv6": "disabled",
+          "InstanceMetadataTags": "disabled"
+        },
+        "NetworkInterfaces": [
+          {
+            "DeviceIndex": "0",
+            "AssociatePublicIpAddress": false,
+            "DeleteOnTermination": true,
+            "SubnetId": {
+              "Ref": "ControllerSubnetId"
+            },
+            "GroupSet": [
+              {
+                "Fn::GetAtt": [
+                  "ControllerSecurityGroup",
+                  "GroupId"
+                ]
+              }
+            ]
+          }
+        ],
+        "BlockDeviceMappings": [
+          {
+            "DeviceName": {
+              "Ref": "ControllerRootDeviceName"
+            },
+            "Ebs": {
+              "Encrypted": true,
+              "KmsKeyId": {
+                "Ref": "EbsKmsKeyArn"
+              },
+              "VolumeType": "gp3",
+              "VolumeSize": 8,
+              "DeleteOnTermination": true
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Project",
+            "Value": "agent-controller"
+          },
+          {
+            "Key": "Environment",
+            "Value": "synthetic-pilot"
+          }
+        ]
+      }
+    },
+    "ControllerDataAttachment": {
+      "Type": "AWS::EC2::VolumeAttachment",
+      "Condition": "ReviewedAccountAndRegion",
+      "Properties": {
+        "Device": "/dev/sdf",
+        "InstanceId": {
+          "Ref": "ControllerInstance"
+        },
+        "VolumeId": {
+          "Ref": "ControllerDataVolume"
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "ReviewStatus": {
+      "Value": {
+        "Fn::If": [
+          "ReviewedAccountAndRegion",
+          "FOUNDATION ONLY: not a ready application; parameters and explicit security approval remain required",
+          "BLOCKED TARGET: no resources created outside account __INSTALL_ACCOUNT__ / __INSTALL_REGION__"
+        ]
+      }
+    },
+    "ControllerInstanceId": {
+      "Condition": "ReviewedAccountAndRegion",
+      "Value": {
+        "Ref": "ControllerInstance"
+      }
+    },
+    "ControllerDataVolumeId": {
+      "Condition": "ReviewedAccountAndRegion",
+      "Value": {
+        "Ref": "ControllerDataVolume"
+      }
+    },
+    "ControllerRoleArn": {
+      "Condition": "ReviewedAccountAndRegion",
+      "Value": {
+        "Fn::GetAtt": [
+          "ControllerRole",
+          "Arn"
+        ]
+      }
+    },
+    "WorkerSecurityGroupId": {
+      "Condition": "ReviewedAccountAndRegion",
+      "Value": {
+        "Fn::GetAtt": [
+          "WorkerSecurityGroup",
+          "GroupId"
+        ]
+      }
+    },
+    "WorkerImageRepositoryUri": {
+      "Condition": "ReviewedAccountAndRegion",
+      "Value": {
+        "Fn::GetAtt": [
+          "WorkerImageRepository",
+          "RepositoryUri"
+        ]
+      }
+    },
+    "ControllerApplicationLogGroup": {
+      "Condition": "ReviewedAccountAndRegion",
+      "Value": {
+        "Ref": "ControllerLogGroup"
+      }
+    },
+    "WorkerApplicationLogGroup": {
+      "Condition": "ReviewedAccountAndRegion",
+      "Value": {
+        "Ref": "WorkerApplicationLogGroup"
+      }
+    }
+  }
+}

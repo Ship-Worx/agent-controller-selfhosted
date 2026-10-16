@@ -1,0 +1,45 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ReadOnlyNamedControllerSecrets",
+      "Effect": "Allow",
+      "Action": [
+        "secretsmanager:GetSecretValue"
+      ],
+      "Resource": [
+        "arn:aws:secretsmanager:__INSTALL_REGION__:__INSTALL_ACCOUNT__:secret:__REQUIRED_PROVIDER_SECRET_NAME_AND_SUFFIX__",
+        "arn:aws:secretsmanager:__INSTALL_REGION__:__INSTALL_ACCOUNT__:secret:__REQUIRED_ADMIN_SECRET_NAME_AND_SUFFIX__",
+        "arn:aws:secretsmanager:__INSTALL_REGION__:__INSTALL_ACCOUNT__:secret:__REQUIRED_TLS_SECRET_NAME_AND_SUFFIX__"
+      ]
+    },
+    {
+      "Sid": "DecryptOnlyNamedSecretsViaSecretsManager",
+      "Effect": "Allow",
+      "Action": [
+        "kms:Decrypt"
+      ],
+      "Resource": "arn:aws:kms:__INSTALL_REGION__:__INSTALL_ACCOUNT__:key/__REQUIRED_SECRETS_KMS_KEY_ID__",
+      "Condition": {
+        "StringEquals": {
+          "kms:ViaService": "secretsmanager.__INSTALL_REGION__.amazonaws.com",
+          "kms:CallerAccount": "__INSTALL_ACCOUNT__",
+          "kms:EncryptionContext:SecretARN": [
+            "arn:aws:secretsmanager:__INSTALL_REGION__:__INSTALL_ACCOUNT__:secret:__REQUIRED_PROVIDER_SECRET_NAME_AND_SUFFIX__",
+            "arn:aws:secretsmanager:__INSTALL_REGION__:__INSTALL_ACCOUNT__:secret:__REQUIRED_ADMIN_SECRET_NAME_AND_SUFFIX__",
+            "arn:aws:secretsmanager:__INSTALL_REGION__:__INSTALL_ACCOUNT__:secret:__REQUIRED_TLS_SECRET_NAME_AND_SUFFIX__"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "WriteControllerLogStreamsOnly",
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": "arn:aws:logs:__INSTALL_REGION__:__INSTALL_ACCOUNT__:log-group:/agent-controller/__REQUIRED_STACK_NAME__/controller:log-stream:*"
+    }
+  ]
+}

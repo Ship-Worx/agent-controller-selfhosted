@@ -1,0 +1,24 @@
+{
+  "Type": "AWS::SSM::Document",
+  "Properties": {
+    "Name": "agent-controller-pilot-port",
+    "DocumentType": "Session",
+    "DocumentFormat": "JSON",
+    "UpdateMethod": "NewVersion",
+    "Tags": [
+      {
+        "Key": "Project",
+        "Value": "agent-controller"
+      }
+    ],
+    "Content": {
+      "schemaVersion": "1.0",
+      "description": "Private controller admin TCP forwarding; fixed managed-node destination only.",
+      "sessionType": "Port",
+      "properties": {
+        "portNumber": "8787",
+        "localPortNumber": "8787"
+      }
+    }
+  }
+}

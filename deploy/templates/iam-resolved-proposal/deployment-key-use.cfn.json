@@ -1,0 +1,99 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ManageOnlyPilotKey",
+      "Effect": "Allow",
+      "Action": [
+        "kms:DescribeKey",
+        "kms:GetKeyPolicy",
+        "kms:PutKeyPolicy",
+        "kms:ListResourceTags",
+        "kms:TagResource",
+        "kms:UpdateKeyDescription"
+      ],
+      "Resource": {
+        "Fn::GetAtt": [
+          "PilotKey",
+          "Arn"
+        ]
+      },
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__"
+        }
+      }
+    },
+    {
+      "Sid": "UsePilotKeyForEbs",
+      "Effect": "Allow",
+      "Action": [
+        "kms:Decrypt",
+        "kms:GenerateDataKeyWithoutPlaintext",
+        "kms:ReEncryptFrom",
+        "kms:ReEncryptTo"
+      ],
+      "Resource": {
+        "Fn::GetAtt": [
+          "PilotKey",
+          "Arn"
+        ]
+      },
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__",
+          "kms:ViaService": "ec2.__INSTALL_REGION__.amazonaws.com"
+        }
+      }
+    },
+    {
+      "Sid": "CreateOnlyServiceResourceGrants",
+      "Effect": "Allow",
+      "Action": [
+        "kms:CreateGrant"
+      ],
+      "Resource": {
+        "Fn::GetAtt": [
+          "PilotKey",
+          "Arn"
+        ]
+      },
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__"
+        },
+        "Bool": {
+          "kms:GrantIsForAWSResource": "true"
+        }
+      }
+    },
+    {
+      "Sid": "InitializeOnlySyntheticSecrets",
+      "Effect": "Allow",
+      "Action": [
+        "kms:GenerateDataKey",
+        "kms:Decrypt"
+      ],
+      "Resource": {
+        "Fn::GetAtt": [
+          "PilotKey",
+          "Arn"
+        ]
+      },
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "__INSTALL_REGION__",
+          "kms:ViaService": "secretsmanager.__INSTALL_REGION__.amazonaws.com",
+          "kms:EncryptionContext:SecretARN": [
+            {
+              "Ref": "AdminSecret"
+            },
+            {
+              "Ref": "TlsSecret"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

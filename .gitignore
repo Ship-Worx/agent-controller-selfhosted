@@ -1,0 +1,24 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.runtime/
+*.egg-info/
+build/
+dist/
+
+# Local credentials and durable runtime state do not belong in shared source.
+.env
+.env.*
+!.env.example
+!.env.*.example
+.aws/
+*.pem
+*.key
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*

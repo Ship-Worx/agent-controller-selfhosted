@@ -1,0 +1,97 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "CreateOnlyNamedDeploymentServiceRole",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateRole"
+      ],
+      "Resource": "arn:aws:iam::__INSTALL_ACCOUNT__:role/agent-controller-pilot-deployment",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestTag/Project": "agent-controller"
+        }
+      }
+    },
+    {
+      "Sid": "InstallReviewedDeploymentRolePolicy",
+      "Effect": "Allow",
+      "Action": [
+        "iam:GetRole",
+        "iam:PutRolePolicy",
+        "iam:GetRolePolicy",
+        "iam:TagRole"
+      ],
+      "Resource": "arn:aws:iam::__INSTALL_ACCOUNT__:role/agent-controller-pilot-deployment"
+    },
+    {
+      "Sid": "CreateOnlyNamedTaggedDeploymentManagedPolicies",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreatePolicy"
+      ],
+      "Resource": [
+        "arn:aws:iam::__INSTALL_ACCOUNT__:policy/agent-controller-pilot-deployment-01",
+        "arn:aws:iam::__INSTALL_ACCOUNT__:policy/agent-controller-pilot-deployment-02",
+        "arn:aws:iam::__INSTALL_ACCOUNT__:policy/agent-controller-pilot-deployment-03",
+        "arn:aws:iam::__INSTALL_ACCOUNT__:policy/agent-controller-pilot-deployment-04",
+        "arn:aws:iam::__INSTALL_ACCOUNT__:policy/agent-controller-pilot-deployment-05",
+        "arn:aws:iam::__INSTALL_ACCOUNT__:policy/agent-controller-pilot-deployment-06",
+        "arn:aws:iam::__INSTALL_ACCOUNT__:policy/agent-controller-pilot-deployment-07",
+        "arn:aws:iam::__INSTALL_ACCOUNT__:policy/agent-controller-pilot-deployment-08",
+        "arn:aws:iam::__INSTALL_ACCOUNT__:policy/agent-controller-pilot-deployment-09",
+        "arn:aws:iam::__INSTALL_ACCOUNT__:policy/agent-controller-pilot-deployment-10"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestTag/Project": "agent-controller"
+        }
+      }
+    },
+    {
+      "Sid": "ReadOnlyNamedDeploymentManagedPolicies",
+      "Effect": "Allow",
+      "Action": [
+        "iam:GetPolicy",
+        "iam:GetPolicyVersion"
+      ],
+      "Resource": [
+        "arn:aws:iam::__INSTALL_ACCOUNT__:policy/agent-controller-pilot-deployment-01",
+        "arn:aws:iam::__INSTALL_ACCOUNT__:policy/agent-controller-pilot-deployment-02",
+        "arn:aws:iam::__INSTALL_ACCOUNT__:policy/agent-controller-pilot-deployment-03",
+        "arn:aws:iam::__INSTALL_ACCOUNT__:policy/agent-controller-pilot-deployment-04",
+        "arn:aws:iam::__INSTALL_ACCOUNT__:policy/agent-controller-pilot-deployment-05",
+        "arn:aws:iam::__INSTALL_ACCOUNT__:policy/agent-controller-pilot-deployment-06",
+        "arn:aws:iam::__INSTALL_ACCOUNT__:policy/agent-controller-pilot-deployment-07",
+        "arn:aws:iam::__INSTALL_ACCOUNT__:policy/agent-controller-pilot-deployment-08",
+        "arn:aws:iam::__INSTALL_ACCOUNT__:policy/agent-controller-pilot-deployment-09",
+        "arn:aws:iam::__INSTALL_ACCOUNT__:policy/agent-controller-pilot-deployment-10"
+      ]
+    },
+    {
+      "Sid": "AttachOnlyNamedPoliciesToNamedDeploymentRole",
+      "Effect": "Allow",
+      "Action": [
+        "iam:AttachRolePolicy"
+      ],
+      "Resource": "arn:aws:iam::__INSTALL_ACCOUNT__:role/agent-controller-pilot-deployment",
+      "Condition": {
+        "ArnEquals": {
+          "iam:PolicyARN": [
+            "arn:aws:iam::__INSTALL_ACCOUNT__:policy/agent-controller-pilot-deployment-01",
+            "arn:aws:iam::__INSTALL_ACCOUNT__:policy/agent-controller-pilot-deployment-02",
+            "arn:aws:iam::__INSTALL_ACCOUNT__:policy/agent-controller-pilot-deployment-03",
+            "arn:aws:iam::__INSTALL_ACCOUNT__:policy/agent-controller-pilot-deployment-04",
+            "arn:aws:iam::__INSTALL_ACCOUNT__:policy/agent-controller-pilot-deployment-05",
+            "arn:aws:iam::__INSTALL_ACCOUNT__:policy/agent-controller-pilot-deployment-06",
+            "arn:aws:iam::__INSTALL_ACCOUNT__:policy/agent-controller-pilot-deployment-07",
+            "arn:aws:iam::__INSTALL_ACCOUNT__:policy/agent-controller-pilot-deployment-08",
+            "arn:aws:iam::__INSTALL_ACCOUNT__:policy/agent-controller-pilot-deployment-09",
+            "arn:aws:iam::__INSTALL_ACCOUNT__:policy/agent-controller-pilot-deployment-10"
+          ]
+        }
+      }
+    }
+  ]
+}

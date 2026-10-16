@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "mode": "synthetic",
+  "account": null,
+  "region": null,
+  "controller_private_ipv4": null,
+  "controller_private_dns": null,
+  "controller_uid": 42010,
+  "controller_gid": 42010,
+  "proxy_uid": 42011,
+  "proxy_gid": 42011,
+  "python_version": "3.12.14",
+  "nginx_version": null,
+  "python_sha256": null,
+  "nginx_sha256": null,
+  "state_policy": {
+    "mountpoint": "/srv/controller-volume",
+    "state_dir": "/srv/controller-volume/controller",
+    "volume_id": null,
+    "filesystem_uuid": null,
+    "uid": 42010,
+    "gid": 42010
+  },
+  "installation": {
+    "schema_version": 1,
+    "project_id": null,
+    "account_id": null,
+    "region": null,
+    "limit_microusd": null
+  }
+}

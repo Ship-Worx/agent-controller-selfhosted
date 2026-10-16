@@ -1,0 +1,18 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "OnlyObservedOperatorWithMfa",
+      "Effect": "Allow",
+      "Action": "sts:AssumeRole",
+      "Condition": {
+        "Bool": {
+          "aws:MultiFactorAuthPresent": "true"
+        }
+      },
+      "Principal": {
+        "AWS": "__INSTALL_OPERATOR_ARN__"
+      }
+    }
+  ]
+}

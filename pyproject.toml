@@ -1,0 +1,17 @@
+[project]
+name = "agent-controller"
+version = "0.1.0"
+description = "Independent authorization controller for bounded agent workflows"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "openai-agents==0.23.1",
+    "openai==3.29.0",
+]
+
+[dependency-groups]
+dev = ["pytest==8.4.2"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "deploy/tests"]
+pythonpath = ["."]
+addopts = "-ra"

@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "status": "review_only_proposed_maximum_provisioning_scope_not_authorized_application",
+  "groups": {
+    "controller": {
+      "attachment_type": "inline",
+      "target_role": "agent-controller-pilot-controller",
+      "documents": [
+        "controller-identity.cfn.json",
+        "controller-ssm-session-channels.json"
+      ]
+    },
+    "worker": {
+      "attachment_type": "inline",
+      "target_role": "agent-controller-pilot-worker",
+      "documents": [
+        "worker-identity-steady-state.json"
+      ]
+    },
+    "operator": {
+      "attachment_type": "inline",
+      "target_role": "agent-controller-pilot-operator",
+      "documents": [
+        "operator-ssm.cfn.json",
+        "operator-invoke-selected-endpoint.json"
+      ]
+    },
+    "deployment": {
+      "attachment_type": "managed",
+      "target_role": "agent-controller-pilot-deployment",
+      "policy_name_prefix": "agent-controller-pilot-deployment",
+      "documents": [
+        "deployment-foundation-create-exceptions.json",
+        "deployment-network-slr-if-absent.json",
+        "deployment-pass-role.json",
+        "deployment-output-bound.cfn.json",
+        "deployment-controller-launch.cfn.json",
+        "deployment-key-use.cfn.json",
+        "deployment-runtime-create.cfn.json",
+        "deployment-runtime-output-bound.json"
+      ]
+    }
+  },
+  "limits": {
+    "managed_policy_characters": 6144,
+    "managed_policies_per_role": 10,
+    "aggregate_inline_role_characters": 10240
+  },
+  "notes": [
+    "The deployment group includes temporary creation authority; remove it or replace it with exact-output steady-state grants after bootstrap.",
+    "Route53 CreateHostedZone exception, secret initialization, service-role bootstrap, submitter, and key cleanup remain separate administrator review fragments; never merge them into workload roles.",
+    "Trust, KMS key, endpoint and SSM document policies are different resource types, not role identity attachments.",
+    "Sizes are compact JSON characters including fixed policy wrapper; account quota and existing attachments/inline policies remain unobserved.",
+    "Ephemeral-window cleanup and retention-release cleanup are standalone administrator proposals, never automatic provisioning/workload attachments. Key cleanup remains separate."
+  ]
+}
