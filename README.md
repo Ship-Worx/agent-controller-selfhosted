@@ -38,6 +38,25 @@ exercises two workflows, denied actions, bounded delegation/shared budgets,
 Stop/cancellation and restart without replayed effects. Keep generated state
 and traces out of version control.
 
+To see the contract and a blocked scope violation directly, run
+`.venv/bin/python -m demo.contract`. The SDK worker reads its assigned fictional
+record, then attempts another record; the controller denies that second action
+and verifies zero additional effects. Only a sanitized educational report is
+retained.
+
+Inspect and save the existing permission contract with the offline policy tracker:
+
+```bash
+.venv/bin/python -m controller.policy_review inspect --workflow recruiting
+.venv/bin/python -m controller.policy_review capture \
+  --workflow recruiting --archive .runtime/policy-reviews
+.venv/bin/python -m controller.policy_review history --archive .runtime/policy-reviews
+```
+
+[Policy review and recovery](docs/POLICY_REVIEW.md) explains configuration
+comparisons and recovery under matching trusted rules. Review snapshots record
+rules for inspection; they grant no execution authority or policy activation.
+
 ## Use your own installation
 
 [Self-hosting setup](docs/SELF_HOSTING.md) explains the operator-owned account,

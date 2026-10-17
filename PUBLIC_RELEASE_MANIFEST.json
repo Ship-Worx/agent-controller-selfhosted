@@ -18,8 +18,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 3352,
-      "sha256": "ef9ef51fe69f63c5a3e4a7d826d3ffd4f49f7e517dabb4b794cf05d23fe15daf"
+      "bytes": 4269,
+      "sha256": "06762e1264d4cc74bd94283d7a46a88c3f4c7a6194e728599c0fc40f2bb6324b"
     },
     {
       "path": "SECURITY.md",
@@ -52,6 +52,11 @@
       "sha256": "89b8c9ae1aa88f93e288fdf573ff92cf2a285a4fad37a21906c9bd9f9659829b"
     },
     {
+      "path": "controller/policy_review.py",
+      "bytes": 15714,
+      "sha256": "df19158d1684d0865995ed0be0479efbd2561c23714279078eb04269ac3dbd02"
+    },
+    {
       "path": "controller/project_budget.py",
       "bytes": 19082,
       "sha256": "651c66d3ac173bc26932a0bd96edd5b2fae2036c4f5475cc834a1af9e10be1c9"
@@ -70,6 +75,11 @@
       "path": "demo/__init__.py",
       "bytes": 73,
       "sha256": "111ed663eb7dab6ed3d228d2e4c38f21297d137eff716385a58c9931484a2484"
+    },
+    {
+      "path": "demo/contract.py",
+      "bytes": 7634,
+      "sha256": "6c74ef5a0b35e3cdeb4296c9181fccb5650a6d680d92766949a4d60d3984f9cb"
     },
     {
       "path": "demo/local.py",
@@ -402,6 +412,11 @@
       "sha256": "6abb8367d18e33bbb67ed4e7ce6a5e7b9dc6cfc0529e3a27a7fe514ba074f9bb"
     },
     {
+      "path": "docs/POLICY_REVIEW.md",
+      "bytes": 6736,
+      "sha256": "4edd9f0a63d6c3cec1c654058c6a24d00ac778730b13a8e1a4051b337b9a03cf"
+    },
+    {
       "path": "docs/PROVENANCE.md",
       "bytes": 1559,
       "sha256": "1aa8a6521d10657c6548568e61dc249957584cce128a59d6b9d124474d44bba5"
@@ -453,8 +468,8 @@
     },
     {
       "path": "public-release-files.json",
-      "bytes": 5217,
-      "sha256": "360dfb2a7cd4aec55fa45776e9db1ec034eccc2277ede4a7dd5ecca06340e226"
+      "bytes": 5375,
+      "sha256": "18ae1708be59c426d375c259ee0fc79c78d497855656591d4aac58c065fbd510"
     },
     {
       "path": "pyproject.toml",
@@ -497,6 +512,11 @@
       "sha256": "566b80e876ff325371dedd4724450149a3f9319ea73bb3f3e0f89fc2f8125233"
     },
     {
+      "path": "tests/test_contract_demo.py",
+      "bytes": 2388,
+      "sha256": "885c823e82b9395d17153a2dc5d52ce979d7128c7c04f1379ee723e81c5346dd"
+    },
+    {
       "path": "tests/test_controller_tls.py",
       "bytes": 2729,
       "sha256": "832c5e9ccfe23f5d459420645f6cb00c8e9741316539dfd84dfcef50368124c7"
@@ -525,6 +545,11 @@
       "path": "tests/test_live_worker_uncertainty.py",
       "bytes": 4194,
       "sha256": "f55a5b1460e61d014b8926d6e6066256cd1f47124e1cba427a9a4f7c3ac41b48"
+    },
+    {
+      "path": "tests/test_policy_review.py",
+      "bytes": 14019,
+      "sha256": "e1447905da11511bb6d7a2c280768c41d3d416e3142d3931188c89dff609f22a"
     },
     {
       "path": "tests/test_project_budget.py",
