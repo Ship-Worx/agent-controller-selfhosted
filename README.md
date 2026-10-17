@@ -50,6 +50,11 @@ same run and operation hashes, and retains an allowlisted JSON trace report.
 [Observability](docs/OBSERVABILITY.md) explains the evidence, privacy limits and
 test coverage. SDK remote trace export stays disabled.
 
+An [optional Braintrust exporter](docs/BRAINTRUST.md) projects that completed
+report into source-labeled trace records and deterministic evidence checks.
+It defaults to an offline preview; an explicit operator upload uses the
+operator's own Braintrust project and key, kept outside the agent.
+
 Inspect and save the existing permission contract with the offline policy tracker:
 
 ```bash

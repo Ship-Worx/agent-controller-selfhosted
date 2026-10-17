@@ -100,6 +100,12 @@ Keep runtime artifacts private and out of Git. The current controller `/trace`
 route retains its existing authenticated operator/run scoping. A local trace
 file is not an immutable external audit archive.
 
+For an optional post-run view in the operator's own Braintrust project, see the
+[Braintrust exporter](BRAINTRUST.md). It defaults to an offline projection of
+this demonstration's report; only an explicit trusted operator invocation sends
+the selected metadata. It does not enable SDK remote tracing or make imported
+files authoritative controller evidence.
+
 ## Verify the claims
 
 | Claim | Enforcement/evidence | Regression coverage |
@@ -115,6 +121,7 @@ file is not an immutable external audit archive.
 The standalone joined demonstration covers allowed and denied actions. Existing
 tests cover Stop, restart and uncertainty; this document does not claim a single
 combined production trace has exercised all of them on AWS. Native AWS runtime
-acceptance, live streaming/export, CloudWatch retention and distributed trace
-collection remain deployment work. No paid model call or AWS resource is needed
-for these local demonstrations and tests.
+acceptance, live streaming, CloudWatch retention and distributed trace
+collection remain deployment work. The optional file-based Braintrust exporter
+does not close those gaps. No paid model call or AWS resource is needed for
+these local demonstrations and tests.

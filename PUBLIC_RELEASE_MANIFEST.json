@@ -18,8 +18,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 4626,
-      "sha256": "0ab0a084e105282883c658bd6314ff6e9ef3ff5b625ab087151d02516b1e8da9"
+      "bytes": 4920,
+      "sha256": "381da621dbe001fd336606d2190cb456866de213f7380cb4a31fe492cda15c87"
     },
     {
       "path": "SECURITY.md",
@@ -417,9 +417,14 @@
       "sha256": "aa201ff3f59bfb40b0115b5318d99eaeafca8df21e1f487056c3b363dfbe8875"
     },
     {
+      "path": "docs/BRAINTRUST.md",
+      "bytes": 8003,
+      "sha256": "115ec1bd91edda0ccbdff2958239d64a02df378fe1f6d7a17531a2656298da33"
+    },
+    {
       "path": "docs/OBSERVABILITY.md",
-      "bytes": 7666,
-      "sha256": "aa1547be7906b6718e90e444725a3f1d7323752d320c02133a9090d324bef64b"
+      "bytes": 8088,
+      "sha256": "f1cac101f1d8a7947978d88621ca1348d070f4cba1d60084a4f80d858b65cde0"
     },
     {
       "path": "docs/POLICY_REVIEW.md",
@@ -452,6 +457,11 @@
       "sha256": "e6d25912c421822044eb742da52a5a8d030d48c780a11b3a006cc0638f7b94b4"
     },
     {
+      "path": "integration/braintrust_export.py",
+      "bytes": 10067,
+      "sha256": "c3ed6dca4076dfe08b5889e659352755395094d19edcddc8f1a369f2520c307c"
+    },
+    {
       "path": "integration/client.py",
       "bytes": 6144,
       "sha256": "18a7020c467f1f20627c3bf1f2d02b6e2f92a57a6821aa65a4f594e12c10d824"
@@ -463,8 +473,8 @@
     },
     {
       "path": "integration/live_worker.py",
-      "bytes": 13014,
-      "sha256": "5b7513f695aaf62638e4ae7a456d0529c92eabdc6b1891d1dc1a03f81d3763ab"
+      "bytes": 13044,
+      "sha256": "f6f20039741324485360f15624ea87fed6a190f02e5c8587e578a254d0fee0a4"
     },
     {
       "path": "integration/process.py",
@@ -477,14 +487,19 @@
       "sha256": "d847b582fee4a1c0abae9043e14e890162cb3540ae7c0fbe342c8629d7613ab2"
     },
     {
+      "path": "integration/trace_export.py",
+      "bytes": 18672,
+      "sha256": "bd5fb2e30edb8f28227d35017aeb0660c1dff73ceebe2ec3c7832d356dc8c3a9"
+    },
+    {
       "path": "integration/worker.py",
       "bytes": 6106,
       "sha256": "384a4de8204ee04f8a9abade90b901015252eecd2df4471384daf20fc4f180c8"
     },
     {
       "path": "public-release-files.json",
-      "bytes": 5569,
-      "sha256": "9ba5a6113b3e167ef13226ae86a16fc1c712024ab60c440c0f9584c940d38c5a"
+      "bytes": 5743,
+      "sha256": "cdf7734ab80f42bc34d2209a9556608bd6f23c19bd2f51075be58b5f5411e427"
     },
     {
       "path": "pyproject.toml",
@@ -520,6 +535,11 @@
       "path": "tests/__init__.py",
       "bytes": 41,
       "sha256": "e4e8d3c25c26199d267df88d51050791fee65c5158802a165d0cbe1a1dbb937b"
+    },
+    {
+      "path": "tests/test_braintrust_export.py",
+      "bytes": 21429,
+      "sha256": "c201bd55d92a82245401c91569a721b5e4cce7618e9de2fa9b89e8ef09ef4249"
     },
     {
       "path": "tests/test_broker_ownership.py",
@@ -558,8 +578,8 @@
     },
     {
       "path": "tests/test_live_worker_uncertainty.py",
-      "bytes": 4194,
-      "sha256": "f55a5b1460e61d014b8926d6e6066256cd1f47124e1cba427a9a4f7c3ac41b48"
+      "bytes": 4887,
+      "sha256": "db7af18ca94b5e1acdb045885d0e4f98c480644bbc17d42a63ead9d98898eeb2"
     },
     {
       "path": "tests/test_observability_demo.py",
@@ -597,9 +617,14 @@
       "sha256": "2d895b5eb8dcf9f4b5d6c741bc74b9fe9c02e4d25e05f71c461484f20d451d10"
     },
     {
+      "path": "tests/test_trace_export.py",
+      "bytes": 17563,
+      "sha256": "3deb57f6b5771cb487ac14265e73842fdba39a898b0c3db0317d49fdb1476e59"
+    },
+    {
       "path": "tests/test_worker_process.py",
-      "bytes": 4987,
-      "sha256": "7d40814c86e7790a2addb984aa24e77edf57df72b709b4592a496574e48c5f79"
+      "bytes": 5026,
+      "sha256": "8ec6ea957f1d1b4726b3a9fdb8bc808f75c88e97d53b28df77e3e2bd15650754"
     },
     {
       "path": "tests/test_worker_startup.py",
