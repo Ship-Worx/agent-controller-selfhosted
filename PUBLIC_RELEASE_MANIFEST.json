@@ -18,8 +18,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 4920,
-      "sha256": "381da621dbe001fd336606d2190cb456866de213f7380cb4a31fe492cda15c87"
+      "bytes": 5314,
+      "sha256": "3f82db984ab8a787a0c9abf875c3ae0119647ff7778fe3b713fb35b5cf7a9bc7"
     },
     {
       "path": "SECURITY.md",
@@ -30,6 +30,11 @@
       "path": "controller/__init__.py",
       "bytes": 432,
       "sha256": "62a8d532a252abfdc65c7fc8dbca4ef1ce51778d7636e1ce58a34aa6a58ad68d"
+    },
+    {
+      "path": "controller/aws_identity.py",
+      "bytes": 14159,
+      "sha256": "3895496a70cd4fb4a2d91446e52bb7cb921743340689fc1ef314f70db9e65b61"
     },
     {
       "path": "controller/durable.py",
@@ -75,6 +80,16 @@
       "path": "demo/__init__.py",
       "bytes": 73,
       "sha256": "111ed663eb7dab6ed3d228d2e4c38f21297d137eff716385a58c9931484a2484"
+    },
+    {
+      "path": "demo/aws_identity.py",
+      "bytes": 9891,
+      "sha256": "65332fcdd9bb7300e2e77af0efbd11bb87e6010b2ef9a7b2429a2f9a6b0322aa"
+    },
+    {
+      "path": "demo/aws_identity_agent.py",
+      "bytes": 4881,
+      "sha256": "a5eec97f81cac3885f217c2f21ee7d638078fdb5f17dbab187adae8cce6f4c07"
     },
     {
       "path": "demo/contract.py",
@@ -417,9 +432,14 @@
       "sha256": "aa201ff3f59bfb40b0115b5318d99eaeafca8df21e1f487056c3b363dfbe8875"
     },
     {
+      "path": "docs/AWS_IDENTITY_DEMO.md",
+      "bytes": 6410,
+      "sha256": "e94e16e38a3b8bcaf998bd996a0caae86cb9a9d9a89c64a88a4e7399eab99aec"
+    },
+    {
       "path": "docs/BRAINTRUST.md",
-      "bytes": 8003,
-      "sha256": "115ec1bd91edda0ccbdff2958239d64a02df378fe1f6d7a17531a2656298da33"
+      "bytes": 8056,
+      "sha256": "f281b5299885aeb30370456326a2cee0f177e700952f233e8a1a0995f334d80a"
     },
     {
       "path": "docs/OBSERVABILITY.md",
@@ -435,6 +455,11 @@
       "path": "docs/PROVENANCE.md",
       "bytes": 1559,
       "sha256": "1aa8a6521d10657c6548568e61dc249957584cce128a59d6b9d124474d44bba5"
+    },
+    {
+      "path": "docs/SECURITY_LEARNINGS.md",
+      "bytes": 4175,
+      "sha256": "54ca1848814d3d1d654c4bd7d12f71774c7b9530fc2a74b76608e9db1a5dafdf"
     },
     {
       "path": "docs/SELF_HOSTING.md",
@@ -498,8 +523,8 @@
     },
     {
       "path": "public-release-files.json",
-      "bytes": 5743,
-      "sha256": "cdf7734ab80f42bc34d2209a9556608bd6f23c19bd2f51075be58b5f5411e427"
+      "bytes": 5940,
+      "sha256": "289754828854296628a0457b06f91e0cd2a312f93f829ee14607bac92c74a20b"
     },
     {
       "path": "pyproject.toml",
@@ -535,6 +560,11 @@
       "path": "tests/__init__.py",
       "bytes": 41,
       "sha256": "e4e8d3c25c26199d267df88d51050791fee65c5158802a165d0cbe1a1dbb937b"
+    },
+    {
+      "path": "tests/test_aws_identity.py",
+      "bytes": 23984,
+      "sha256": "5dae1bf05cf35cbe91dcd067839e31f6556aa1bcfea385bb63dbcc50ff3f7f51"
     },
     {
       "path": "tests/test_braintrust_export.py",

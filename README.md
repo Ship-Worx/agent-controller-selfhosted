@@ -68,6 +68,12 @@ Inspect and save the existing permission contract with the offline policy tracke
 comparisons and recovery under matching trusted rules. Review snapshots record
 rules for inspection; they grant no execution authority or policy activation.
 
+[Research lessons and status](docs/SECURITY_LEARNINGS.md) maps the Cordum,
+Arbiter and AgentArmor takeaways to implemented controls, tests and remaining
+deployment work. The [read-only AWS identity demonstration](docs/AWS_IDENTITY_DEMO.md)
+adds a closed STS receiver driven by a separate scripted SDK agent, using the
+existing durable controller gates and an explicit trusted operator bridge.
+
 ## Use your own installation
 
 [Self-hosting setup](docs/SELF_HOSTING.md) explains the operator-owned account,

@@ -1,8 +1,9 @@
 # Optional Braintrust trace export
 
 The operator can inspect the agent's observations and the controller's decisions
-in a Braintrust project. This is a post-run, file-based adapter for the local
-contract demonstration. It does not change permissions, execute tools, activate
+in a Braintrust project. This is a post-run, file-based adapter for the curated
+local contract and [AWS identity](AWS_IDENTITY_DEMO.md) demonstrations.
+It does not change permissions, execute tools, activate
 policies, reconcile budgets or recover controller state.
 
 The controller journal remains the authority for controller decisions. Agent
@@ -143,7 +144,7 @@ itself does not demonstrate long-term retention or an immutable audit archive.
 
 ## Deployment boundary
 
-This feature exports a completed local demonstration report. It does not enable
+This feature exports a completed, curated demonstration report. It does not enable
 automatic Agents SDK remote tracing, stream live events, deploy an AWS
 collector, configure CloudWatch retention or establish native AWS runtime
 acceptance. Existing global and per-run SDK remote tracing stays disabled.
