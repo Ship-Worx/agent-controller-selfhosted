@@ -13,7 +13,8 @@ from integration.live_worker import run_live
 @pytest.fixture(autouse=True)
 def no_worker_credentials(monkeypatch):
     for name in ("OPENAI_API_KEY", "OPENAI_ADMIN_KEY", "OPENAI_CUSTOM_HEADERS",
-                 "OPENAI_AGENTS_TRACING_API_KEY", "CONTROLLER_OPENAI_API_KEY", "CONTROLLER_ADMIN_TOKEN"):
+                 "OPENAI_AGENTS_TRACING_API_KEY", "BRAINTRUST_API_KEY",
+                 "CONTROLLER_OPENAI_API_KEY", "CONTROLLER_ADMIN_TOKEN"):
         monkeypatch.delenv(name, raising=False)
 
     # These requests are in-memory fixtures, not I/O. Run them inline so this
@@ -27,6 +28,19 @@ def no_worker_credentials(monkeypatch):
 
 SNAPSHOT = {"live_model": True, "purpose": "synthetic uncertainty check",
             "context": {}, "capabilities": []}
+
+
+def test_worker_refuses_braintrust_credential_before_any_controller_request(monkeypatch):
+    monkeypatch.setenv("BRAINTRUST_API_KEY", "synthetic-braintrust-credential")
+
+    def forbidden(*args, **kwargs):
+        pytest.fail("a credential-bearing worker must stop before transport")
+
+    monkeypatch.setattr(ControllerClient, "request", forbidden)
+    result = asyncio.run(run_live("https://controller.example.invalid:8443", "synthetic-run-token"))
+    assert result == {"status": "blocked", "reason": "worker_privileged_credential_present",
+                      "usage": None}
+    assert "synthetic-braintrust-credential" not in json.dumps(result)
 
 
 @pytest.mark.parametrize("outcome", [

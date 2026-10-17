@@ -150,6 +150,27 @@ class RuntimeTests(unittest.TestCase):
             self.assertEqual(code, 404)
             self.assertNotIn(TOKEN, json.dumps(value))
 
+    def test_optional_trace_cannot_overflow_an_otherwise_valid_outcome(self):
+        output = "x" * (MODULE.MAX_RESPONSE - 100)
+
+        async def worker(*args, **kwargs):
+            return {"status": "completed", "final_output": output,
+                    "agent_trace": {"events": ["synthetic-event"] * 100}}
+
+        self.server.worker = worker
+        client = HTTPConnection("127.0.0.1", self.server.server_port, timeout=3)
+        try:
+            client.request("POST", "/invocations", body=json.dumps({"run_token": TOKEN}),
+                           headers={"Content-Type": "application/json"})
+            response = client.getresponse()
+            raw = response.read()
+            self.assertEqual(response.status, 200)
+            self.assertEqual(response.getheader("X-Agent-Trace-Status"), "omitted_response_limit")
+            self.assertLessEqual(len(raw), MODULE.MAX_RESPONSE)
+            self.assertEqual(json.loads(raw), {"status": "completed", "final_output": output})
+        finally:
+            client.close()
+
     def test_runtime_controller_url_requires_https(self):
         for url in (None, "http://127.0.0.1:8080", "http://controller.internal",
                     "https://user:password@controller.internal", "https://controller.internal/path",

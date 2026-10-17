@@ -125,11 +125,21 @@ class WorkerHandler(BaseHTTPRequestHandler):
         self.respond(code, {"status": "blocked", "reason": "http_request_rejected"})
 
     def respond(self, code, value, *, token=None):
+        trace_omitted = False
         try:
             raw = json.dumps(value, separators=(",", ":"), allow_nan=False)
             if token:
                 raw = raw.replace(token, "[redacted-run-token]")
             payload = raw.encode("utf-8")
+            if len(payload) > MAX_RESPONSE and type(value) is dict and "agent_trace" in value:
+                # Optional telemetry must not turn an otherwise valid business
+                # outcome into an unknown result at the fixed response limit.
+                raw = json.dumps({key: item for key, item in value.items() if key != "agent_trace"},
+                                 separators=(",", ":"), allow_nan=False)
+                if token:
+                    raw = raw.replace(token, "[redacted-run-token]")
+                payload = raw.encode("utf-8")
+                trace_omitted = True
             if len(payload) > MAX_RESPONSE:
                 raise ValueError
         except (ValueError, TypeError, RecursionError):
@@ -140,6 +150,8 @@ class WorkerHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(payload)))
         self.send_header("Cache-Control", "no-store")
         self.send_header("Connection", "close")
+        if trace_omitted:
+            self.send_header("X-Agent-Trace-Status", "omitted_response_limit")
         self.end_headers()
         try:
             self.wfile.write(payload)

@@ -101,6 +101,7 @@ def test_completed_action_is_not_repeated_after_process_restart(running):
 
 def test_worker_environment_excludes_supervisor_and_provider_credentials(monkeypatch):
     for name in ("CONTROLLER_ADMIN_TOKEN", "CONTROLLER_OPENAI_API_KEY", "OPENAI_API_KEY",
-                 "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_SESSION_TOKEN", "GH_TOKEN"):
+                 "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_SESSION_TOKEN", "GH_TOKEN",
+                 "BRAINTRUST_API_KEY"):
         monkeypatch.setenv(name, "synthetic-credential-marker")
     assert "synthetic-credential-marker" not in process_environment().values()

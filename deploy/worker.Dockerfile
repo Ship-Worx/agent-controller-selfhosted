@@ -9,7 +9,7 @@ RUN --mount=type=secret,id=proxy_ca,required=true \
       --index-url https://pypi.org/simple --cert /run/secrets/proxy_ca \
       --only-binary=:all: --require-hashes -r /app/requirements.lock \
     && python -m pip --isolated check
-COPY --chmod=0444 integration/__init__.py integration/client.py integration/live_model.py integration/live_worker.py /app/integration/
+COPY --chmod=0444 integration/__init__.py integration/client.py integration/live_model.py integration/live_worker.py integration/telemetry.py /app/integration/
 COPY --chmod=0444 deploy/agentcore_worker.py /app/deploy/agentcore_worker.py
 RUN chmod 0555 /app /app/integration /app/deploy
 USER 65532:65532
