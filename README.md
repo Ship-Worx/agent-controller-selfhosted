@@ -44,6 +44,12 @@ record, then attempts another record; the controller denies that second action
 and verifies zero additional effects. Only a sanitized educational report is
 retained.
 
+To see correlated agent activity and controller decisions, run
+`.venv/bin/python -m demo.observe`. It prints both event streams grouped by the
+same run and operation hashes, and retains an allowlisted JSON trace report.
+[Observability](docs/OBSERVABILITY.md) explains the evidence, privacy limits and
+test coverage. SDK remote trace export stays disabled.
+
 Inspect and save the existing permission contract with the offline policy tracker:
 
 ```bash

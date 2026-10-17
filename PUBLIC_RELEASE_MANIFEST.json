@@ -18,8 +18,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 4269,
-      "sha256": "06762e1264d4cc74bd94283d7a46a88c3f4c7a6194e728599c0fc40f2bb6324b"
+      "bytes": 4626,
+      "sha256": "0ab0a084e105282883c658bd6314ff6e9ef3ff5b625ab087151d02516b1e8da9"
     },
     {
       "path": "SECURITY.md",
@@ -63,8 +63,8 @@
     },
     {
       "path": "controller/service.py",
-      "bytes": 37396,
-      "sha256": "d06041ff01a78fa8b45c58d5d0f9c85a9ac161aca4f62ce675bd01f0f4a94239"
+      "bytes": 38267,
+      "sha256": "3e905f2ddf0c6f276e6250a01a59dd7ba20589abaa0c2373e18a1999df536c96"
     },
     {
       "path": "controller/validators.py",
@@ -78,13 +78,18 @@
     },
     {
       "path": "demo/contract.py",
-      "bytes": 7634,
-      "sha256": "6c74ef5a0b35e3cdeb4296c9181fccb5650a6d680d92766949a4d60d3984f9cb"
+      "bytes": 15429,
+      "sha256": "b8f6e07a9b4003bda860ceec5bd477613f8abe78e19ad57ca323468ce10819b4"
     },
     {
       "path": "demo/local.py",
       "bytes": 4684,
       "sha256": "dad554c0a97bde82ca7e2d98fa7500b6fbce7c16e6d3d68b7eb11a67673525a5"
+    },
+    {
+      "path": "demo/observe.py",
+      "bytes": 5836,
+      "sha256": "b7ddf2302548fd18402d20e03a8d41955ca26391b11034ae92bc8090d0caef8f"
     },
     {
       "path": "demo/run.py",
@@ -98,8 +103,8 @@
     },
     {
       "path": "deploy/agentcore_worker.py",
-      "bytes": 8785,
-      "sha256": "c3873a436b3e8543dabbe40e0f40372b36efcfcccf99ac410ecc14dbff359f12"
+      "bytes": 9524,
+      "sha256": "4dc266ccee3b67ea3d81e63ca5124ef5ee89d0fd9d8cc4909abe8a27df563d8e"
     },
     {
       "path": "deploy/aws_readonly.py",
@@ -118,8 +123,8 @@
     },
     {
       "path": "deploy/bootstrap/bundle.py",
-      "bytes": 12184,
-      "sha256": "c49671199cf00d68fea3f04a00acae8991be55821028b1c118d1e1c8a312dd7a"
+      "bytes": 12216,
+      "sha256": "60234a24ea273cf6d63efff33371ec748d4fdaedfefc4525cf34b81ebca64a65"
     },
     {
       "path": "deploy/bootstrap/controller.service",
@@ -373,8 +378,8 @@
     },
     {
       "path": "deploy/tests/test_agentcore_worker.py",
-      "bytes": 7349,
-      "sha256": "6c98a11cc4098b8fc50891473623c0fffb18fc4fd4768aeef1a869fa941d6d17"
+      "bytes": 8389,
+      "sha256": "4d9eda4c75afa6944ef5b6e91cd30465466e3ff0f4d1cbc0489f63a582dca8ba"
     },
     {
       "path": "deploy/tests/test_aws_readonly.py",
@@ -403,18 +408,23 @@
     },
     {
       "path": "deploy/worker.Dockerfile",
-      "bytes": 1050,
-      "sha256": "12178e81d67c0b01b8a9c8a8d29d8178ed376d714aeb8f92aad6c2c6ab988ee3"
+      "bytes": 1075,
+      "sha256": "100d7f95e88df847e96448574d9ad1745b1900db5c44c48d420767fbe82f7b18"
     },
     {
       "path": "deploy/worker.Dockerfile.dockerignore",
-      "bytes": 317,
-      "sha256": "6abb8367d18e33bbb67ed4e7ce6a5e7b9dc6cfc0529e3a27a7fe514ba074f9bb"
+      "bytes": 343,
+      "sha256": "aa201ff3f59bfb40b0115b5318d99eaeafca8df21e1f487056c3b363dfbe8875"
+    },
+    {
+      "path": "docs/OBSERVABILITY.md",
+      "bytes": 7666,
+      "sha256": "aa1547be7906b6718e90e444725a3f1d7323752d320c02133a9090d324bef64b"
     },
     {
       "path": "docs/POLICY_REVIEW.md",
-      "bytes": 6736,
-      "sha256": "4edd9f0a63d6c3cec1c654058c6a24d00ac778730b13a8e1a4051b337b9a03cf"
+      "bytes": 6928,
+      "sha256": "499227e5dc1670221c1d904910d9758666aa47295198da745033ad33a18597c2"
     },
     {
       "path": "docs/PROVENANCE.md",
@@ -443,18 +453,18 @@
     },
     {
       "path": "integration/client.py",
-      "bytes": 4705,
-      "sha256": "9631343358ae88ed7cc59d808b64856960a61cbf74909817688c97e76f3d3972"
+      "bytes": 6144,
+      "sha256": "18a7020c467f1f20627c3bf1f2d02b6e2f92a57a6821aa65a4f594e12c10d824"
     },
     {
       "path": "integration/live_model.py",
-      "bytes": 3890,
-      "sha256": "a5d826de0b2a5e9c2d0d4621ba26555e57f28d35c0ebb102ff30321ef668be0e"
+      "bytes": 4991,
+      "sha256": "84c9a81f7f248eacc18b9b4999aa1e630af97329df9565e1319b155126e76888"
     },
     {
       "path": "integration/live_worker.py",
-      "bytes": 12079,
-      "sha256": "840a6860b0f210ebef44342c5e134cdd60e637f22e4fb6559db1b11996f02f97"
+      "bytes": 13014,
+      "sha256": "5b7513f695aaf62638e4ae7a456d0529c92eabdc6b1891d1dc1a03f81d3763ab"
     },
     {
       "path": "integration/process.py",
@@ -462,14 +472,19 @@
       "sha256": "25fb9260cbd8bf40e880371a5ae1d074b0c5339a1dcaa9df9a6f22bd02e6057b"
     },
     {
+      "path": "integration/telemetry.py",
+      "bytes": 8981,
+      "sha256": "d847b582fee4a1c0abae9043e14e890162cb3540ae7c0fbe342c8629d7613ab2"
+    },
+    {
       "path": "integration/worker.py",
-      "bytes": 5189,
-      "sha256": "659433d9f130e3db6aa55e1985737eb26dc4fb10d04a2fbb7343e22bb79c9f43"
+      "bytes": 6106,
+      "sha256": "384a4de8204ee04f8a9abade90b901015252eecd2df4471384daf20fc4f180c8"
     },
     {
       "path": "public-release-files.json",
-      "bytes": 5375,
-      "sha256": "18ae1708be59c426d375c259ee0fc79c78d497855656591d4aac58c065fbd510"
+      "bytes": 5569,
+      "sha256": "9ba5a6113b3e167ef13226ae86a16fc1c712024ab60c440c0f9584c940d38c5a"
     },
     {
       "path": "pyproject.toml",
@@ -513,8 +528,8 @@
     },
     {
       "path": "tests/test_contract_demo.py",
-      "bytes": 2388,
-      "sha256": "885c823e82b9395d17153a2dc5d52ce979d7128c7c04f1379ee723e81c5346dd"
+      "bytes": 4515,
+      "sha256": "177322237229d3b62323de62a6f3e348dc9aa48e65b49397d0048ce9c3d68a35"
     },
     {
       "path": "tests/test_controller_tls.py",
@@ -547,6 +562,11 @@
       "sha256": "f55a5b1460e61d014b8926d6e6066256cd1f47124e1cba427a9a4f7c3ac41b48"
     },
     {
+      "path": "tests/test_observability_demo.py",
+      "bytes": 7552,
+      "sha256": "9a11325f530a0c0344fb1f13ffd2b1964c52727b940a6d662ff5c18b5fb28b85"
+    },
+    {
       "path": "tests/test_policy_review.py",
       "bytes": 14019,
       "sha256": "e1447905da11511bb6d7a2c280768c41d3d416e3142d3931188c89dff609f22a"
@@ -565,6 +585,16 @@
       "path": "tests/test_service.py",
       "bytes": 8147,
       "sha256": "3fd997be3cb72114f3c33d8e5b97a54c0affc7dba914f4b67caa0459f0e894a1"
+    },
+    {
+      "path": "tests/test_telemetry.py",
+      "bytes": 8213,
+      "sha256": "484d0d8215bccc2dabc5454050a78f7c3fef663d3a10e5ad056cf0e75aa7411e"
+    },
+    {
+      "path": "tests/test_trace_correlation.py",
+      "bytes": 7299,
+      "sha256": "2d895b5eb8dcf9f4b5d6c741bc74b9fe9c02e4d25e05f71c461484f20d451d10"
     },
     {
       "path": "tests/test_worker_process.py",

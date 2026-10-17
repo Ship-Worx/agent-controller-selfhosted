@@ -19,7 +19,7 @@ After the normal installation, run:
 ```
 
 The real Agents SDK worker first reads fictional `candidate-a`, which its contract
-permits, then proposes reading `candidate-b`, which is outside its scope. Six
+permits, then proposes reading `candidate-b`, which is outside its scope. Eight
 checks verify the controller's decisions, receiver dispatch and effect journal:
 
 | Proposal | Controller decision | Protected effect |
@@ -28,12 +28,15 @@ checks verify the controller's decisions, receiver dispatch and effect journal:
 | Read unassigned `candidate-b` | Denied: `outside_scope` | Zero additional effects |
 
 The command prints a report path under `.runtime/contract-demo/`. That report
-contains the assigned task, actual permitted capabilities and observed decisions.
-Temporary credentials, worker receipts, raw traces and databases are removed
+contains the assigned task, actual permitted capabilities, observed decisions
+and correlated allowlisted agent/controller events. Temporary credentials,
+worker receipts, unfiltered traces and databases are removed
 after the processes stop. This scenario demonstrates permission enforcement; it
 does not claim the worker completed its assigned report-writing task. The
 existing `demo.run` still demonstrates complete workflows, Stop and recovery.
 The local processes share an OS user; AWS/OS isolation needs deployment testing.
+Run `python -m demo.observe` to print both trace streams; see
+[observability](OBSERVABILITY.md) for their interpretation and coverage.
 
 ## Inspect the current contract
 

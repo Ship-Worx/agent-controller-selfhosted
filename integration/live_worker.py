@@ -19,6 +19,7 @@ from agents.exceptions import AgentsException
 
 from .client import ActionDenied, ControllerClient, ControllerUnavailable
 from .live_model import ControllerModel
+from .telemetry import AgentTrace
 
 
 def _has_privileged_credentials():
@@ -109,6 +110,7 @@ async def _run(url, token, *, memory, max_turns, on_ready, require_live):
         return {"status": "blocked", "reason": "invalid_worker_input", "usage": None}
     set_tracing_disabled(True)
     client = ControllerClient(url, token, timeout=30)
+    trace = AgentTrace(model_mode="controller_broker")
     model, live = None, None
     phase, uncertain_action = "snapshot", False
     results = []
@@ -123,11 +125,18 @@ async def _run(url, token, *, memory, max_turns, on_ready, require_live):
             raise ActionDenied("malformed_proposal") from None
         if type(proposal) is not dict:
             raise ActionDenied("malformed_proposal")
+        operation = proposal.get("operation_id")
+        trace.emit("action_proposed", operation_id=operation)
         try:
             result = await asyncio.to_thread(client.request, "/act", {"attempt": proposal})
         except ControllerUnavailable:
             uncertain_action = True
+            trace.emit("action_result", operation_id=operation, status="held",
+                       reason="controller_unavailable")
             raise
+        trace.bind(client.trace_context)
+        trace.emit("action_result", operation_id=operation,
+                   status=result.get("status"), reason=result.get("reason"))
         if result.get("status") == "held":
             reason = _reason(result.get("reason"), "action_outcome_unknown")
             # These controller holds precede dispatch. Other holds may describe
@@ -155,6 +164,8 @@ async def _run(url, token, *, memory, max_turns, on_ready, require_live):
 
     try:
         snapshot = await asyncio.to_thread(client.request, "/snapshot")
+        trace.bind(snapshot)
+        trace.bind(client.trace_context)
         if snapshot.get("status") == "denied":
             raise ActionDenied(_reason(snapshot.get("reason"), "authorization_denied"))
         live = snapshot.get("live_model")
@@ -166,7 +177,8 @@ async def _run(url, token, *, memory, max_turns, on_ready, require_live):
             raise ActionDenied("root_stopped")
         if snapshot.get("final_outcome") == "completed":
             raise ActionDenied("job_complete")
-        model = ControllerModel(client) if live else _synthetic_model(snapshot, results)
+        trace.model_mode = "controller_broker" if live else "scripted"
+        model = ControllerModel(client, trace=trace) if live else _synthetic_model(snapshot, results)
         task = {"purpose": snapshot["purpose"], "context": snapshot["context"],
                 "capabilities": [cap for cap in snapshot["capabilities"] if cap["action"] != "model.respond"],
                 "untrusted_memory": memory}
@@ -178,16 +190,19 @@ async def _run(url, token, *, memory, max_turns, on_ready, require_live):
             on_ready()
         phase = "runner"
         outcome = await Runner.run(agent, json.dumps(task, sort_keys=True), max_turns=max_turns,
-                                   run_config=RunConfig(tracing_disabled=True))
+                                   run_config=RunConfig(tracing_disabled=True), hooks=trace)
         phase = "complete"
+        trace.emit("completion_request")
         completion = await asyncio.to_thread(client.request, "/complete", {})
+        trace.bind(client.trace_context)
+        trace.emit("completion_result", status=completion.get("status"), reason=completion.get("reason"))
         if completion.get("status") == "denied":
             raise ActionDenied(_reason(completion.get("reason"), "completion_denied"))
         confirmed = completion.get("status") == "allowed"
-        return {"status": "completed" if confirmed else "held",
-                "reason": _reason(completion.get("reason"), "completion_unconfirmed"),
-                "results": results, "final_output": outcome.final_output if confirmed else None,
-                "usage": usage(), "worker_pid": os.getpid()}
+        return trace.finish({"status": "completed" if confirmed else "held",
+                             "reason": _reason(completion.get("reason"), "completion_unconfirmed"),
+                             "results": results, "final_output": outcome.final_output if confirmed else None,
+                             "usage": usage(), "worker_pid": os.getpid()})
     except (ActionDenied, ControllerUnavailable, AgentsException) as exc:
         cause = exc
         uncertain = isinstance(cause, ControllerUnavailable)
@@ -197,14 +212,14 @@ async def _run(url, token, *, memory, max_turns, on_ready, require_live):
         reason = str(cause) if isinstance(cause, (ActionDenied, ControllerUnavailable)) else "sdk_run_failed"
         uncertain = uncertain or reason in {"model_outcome_unknown", "action_outcome_unknown"}
         uncertain = uncertain or uncertain_action or isinstance(cause, _ActionHeld) and cause.uncertain
-        return {"status": "held" if uncertain or isinstance(cause, _ActionHeld) else "denied",
+        return trace.finish({"status": "held" if uncertain or isinstance(cause, _ActionHeld) else "denied",
                 "reason": reason, "results": results, "usage": usage(),
                 "unknown_model_outcome": uncertain and phase == "runner" and live is True
                                          and not uncertain_action,
                 "unknown_action_outcome": uncertain and (uncertain_action or
                                                           phase == "runner" and live is False),
                 "unknown_completion_outcome": uncertain and phase == "complete",
-                "worker_pid": os.getpid()}
+                "worker_pid": os.getpid()})
 
 
 def main():

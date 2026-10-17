@@ -15,9 +15,10 @@ from .client import ActionDenied, ControllerClient, ControllerUnavailable
 
 class ControllerModel(Model):
     """Only model transport is /model; unsupported SDK features fail closed."""
-    def __init__(self, client: ControllerClient):
+    def __init__(self, client: ControllerClient, *, trace=None):
         self.client = client
         self.measured_usage = []
+        self.trace = trace
 
     async def get_response(self, system_instructions, input, model_settings, tools,
                            output_schema, handoffs, tracing, *, previous_response_id=None,
@@ -32,9 +33,22 @@ class ControllerModel(Model):
         transcript = json.dumps({"instructions": system_instructions, "transcript": input},
                                 sort_keys=True, separators=(",", ":"), allow_nan=False)
         operation_id = "model-" + hashlib.sha256(transcript.encode()).hexdigest()
-        result = await asyncio.to_thread(self.client.request, "/model",
-                                        {"operation_id": operation_id, "prompt": transcript})
+        if self.trace is not None:
+            self.trace.emit("model_request", operation_id=operation_id)
+        try:
+            result = await asyncio.to_thread(self.client.request, "/model",
+                                            {"operation_id": operation_id, "prompt": transcript})
+        except ControllerUnavailable:
+            if self.trace is not None:
+                self.trace.emit("model_result", operation_id=operation_id, status="held",
+                                reason="controller_unavailable")
+            raise
+        if self.trace is not None:
+            self.trace.bind(self.client.trace_context)
         if result.get("status") != "allowed":
+            if self.trace is not None:
+                self.trace.emit("model_result", operation_id=operation_id,
+                                status=result.get("status"), reason=result.get("reason"))
             reason = result.get("reason")
             # Durable replay/claim/recovery holds may represent a request that
             # already reached the provider. These two gateway budget holds
@@ -62,8 +76,14 @@ class ControllerModel(Model):
                 else:
                     raise ValueError("invalid_output")
             self.measured_usage.append(counts)
+            if self.trace is not None:
+                self.trace.emit("model_result", operation_id=operation_id,
+                                status="allowed", reason=result.get("reason"))
             return ModelResponse(output=output, usage=Usage(requests=1, **counts), response_id=None)
         except (KeyError, TypeError, ValueError):
+            if self.trace is not None:
+                self.trace.emit("model_result", operation_id=operation_id, status="held",
+                                reason="invalid_model_response")
             raise ControllerUnavailable("invalid_model_response") from None
 
     async def stream_response(self, *args, **kwargs):

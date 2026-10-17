@@ -9,8 +9,10 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
+import re
 import tempfile
 
 from .local import LocalController, PROJECT, proposal
@@ -19,6 +21,105 @@ from .run import check
 
 def _operation_hash(operation_id: str) -> str:
     return hashlib.sha256(operation_id.encode()).hexdigest()
+
+
+def _hex(value, length):
+    return type(value) is str and re.fullmatch(r"[0-9a-f]{" + str(length) + "}", value) is not None
+
+
+def _safe_controller_events(events):
+    """Project only this demo's known journal fields; omit request/result data."""
+    projected = []
+    previous_id = 0
+    names = {"job_created", "action_proposed", "decision", "tool_started",
+             "tool_finished", "result_release"}
+    statuses = {"reserved", "allowed", "denied", "held"}
+    reasons = {"reserved", "settled", "result_released", "outside_scope"}
+    for event in events:
+        check(type(event) is dict and event.get("source") == "controller",
+              "invalid_controller_trace_source")
+        event_id, at = event.get("event_id"), event.get("at")
+        check(type(event_id) is int and event_id > previous_id,
+              "controller_trace_order_invalid")
+        check(type(at) in (int, float) and math.isfinite(at) and at >= 0,
+              "controller_trace_time_invalid")
+        check(event.get("event") in names, "unexpected_controller_trace_event")
+        safe = {"source": "controller", "event_id": event_id, "at": at,
+                "event": event["event"]}
+        check(_hex(event.get("run_id_hash"), 64), "invalid_controller_run_binding")
+        safe["run_id_hash"] = event["run_id_hash"]
+        for key in ("operation_id_hash", "config_pin", "policy_pin"):
+            if key in event:
+                check(_hex(event[key], 64), "invalid_controller_trace_binding")
+                safe[key] = event[key]
+        check(_hex(event.get("controller_instance_id"), 32)
+              and type(event.get("authority_epoch")) is int and event["authority_epoch"] > 0,
+              "invalid_controller_trace_authority")
+        safe["controller_instance_id"] = event["controller_instance_id"]
+        safe["authority_epoch"] = event["authority_epoch"]
+        for key, allowed in (("status", statuses), ("reason", reasons)):
+            if key in event:
+                check(event[key] in allowed, "unexpected_controller_trace_code")
+                safe[key] = event[key]
+        projected.append(safe)
+        previous_id = event_id
+    return projected
+
+
+def _safe_agent_trace(trace):
+    """Validate and project worker observations without treating them as grants."""
+    check(type(trace) is dict and type(trace.get("schema_version")) is int
+          and trace["schema_version"] == 1
+          and trace.get("source") == "agent_sdk"
+          and trace.get("trust") == "agent_reported_diagnostic", "invalid_agent_trace_schema")
+    check(_hex(trace.get("invocation_id"), 32), "invalid_agent_trace_invocation")
+    check(trace.get("model_mode") in {"scripted", "controller_broker"},
+          "invalid_agent_trace_model_mode")
+    check(type(trace.get("truncated")) is bool
+          and type(trace.get("unavailable")) is bool
+          and type(trace.get("dropped_events")) is int and trace["dropped_events"] >= 0,
+          "invalid_agent_trace_completeness")
+    safe = {key: trace[key] for key in ("schema_version", "source", "invocation_id",
+                                       "trust", "model_mode", "truncated", "dropped_events",
+                                       "unavailable")}
+    for key in ("run_id_hash", "config_pin", "policy_pin"):
+        check(_hex(trace.get(key), 64), "invalid_agent_trace_binding")
+        safe[key] = trace[key]
+    check(_hex(trace.get("controller_instance_id"), 32)
+          and type(trace.get("authority_epoch")) is int and trace["authority_epoch"] > 0,
+          "invalid_agent_trace_authority")
+    safe["controller_instance_id"] = trace["controller_instance_id"]
+    safe["authority_epoch"] = trace["authority_epoch"]
+    check(type(trace.get("events")) is list and 1 <= len(trace["events"]) <= 64,
+          "invalid_agent_trace_events")
+    names = {"agent_started", "model_started", "model_finished", "tool_started",
+             "tool_finished", "agent_finished", "action_proposed", "action_result",
+             "model_request", "model_result", "completion_request", "completion_result",
+             "run_finished"}
+    statuses = {"completed", "error", "denied", "allowed", "held", "reserved", "blocked"}
+    reasons = {"outside_scope", "result_released", "completed", "sdk_run_failed"}
+    previous_sequence, previous_elapsed = 0, -1
+    safe["events"] = []
+    for event in trace["events"]:
+        check(type(event) is dict and event.get("event") in names,
+              "invalid_agent_trace_event")
+        sequence, elapsed = event.get("seq"), event.get("elapsed_ms")
+        check(type(sequence) is int and sequence > previous_sequence,
+              "agent_trace_order_invalid")
+        check(type(elapsed) in (int, float) and math.isfinite(elapsed)
+              and elapsed >= previous_elapsed and elapsed >= 0,
+              "agent_trace_time_invalid")
+        item = {"seq": sequence, "elapsed_ms": elapsed, "event": event["event"]}
+        if "operation_id_hash" in event:
+            check(_hex(event["operation_id_hash"], 64), "invalid_agent_operation_binding")
+            item["operation_id_hash"] = event["operation_id_hash"]
+        for key, allowed in (("status", statuses), ("reason", reasons)):
+            if key in event:
+                check(event[key] in allowed, "unexpected_agent_trace_code")
+                item[key] = event[key]
+        safe["events"].append(item)
+        previous_sequence, previous_elapsed = sequence, elapsed
+    return safe
 
 
 def demonstrate(directory: Path):
@@ -88,6 +189,28 @@ def demonstrate(directory: Path):
                   and final["reserved_microusd"] == 0, "operation_outcome_unresolved")
             checks.append({"check": "no_incremental_effect_from_overreach", "passed": True})
 
+            agent_trace = _safe_agent_trace(worker.get("agent_trace"))
+            controller_events = _safe_controller_events(events)
+            check(not agent_trace["truncated"] and not agent_trace["unavailable"]
+                  and agent_trace["dropped_events"] == 0,
+                  "agent_trace_incomplete")
+            for operation_hash in (allowed_hash, denied_hash):
+                agent_events = [event for event in agent_trace["events"]
+                                if event.get("operation_id_hash") == operation_hash]
+                check(any(event["event"] == "action_proposed" for event in agent_events)
+                      and any(event["event"] == "action_result" for event in agent_events),
+                      "agent_controller_correlation_missing")
+            checks.append({"check": "agent_and_controller_traces_correlated", "passed": True})
+            check(agent_trace["run_id_hash"] == _operation_hash(initial["run_id"]),
+                  "agent_run_binding_mismatch")
+            check(all(event["run_id_hash"] == agent_trace["run_id_hash"]
+                      for event in controller_events), "controller_run_binding_mismatch")
+            for key in ("config_pin", "policy_pin", "authority_epoch", "controller_instance_id"):
+                check(agent_trace[key] == initial[key] == final[key], "agent_policy_binding_mismatch")
+                check(all(event.get(key) == initial[key] for event in controller_events),
+                      "controller_policy_binding_mismatch")
+            checks.append({"check": "trace_policy_and_authority_bindings_match", "passed": True})
+
             # Copy only trusted fictional scope and explicit observations. Never
             # serialize job/worker dictionaries, receipts, tokens or raw events.
             report = {
@@ -104,10 +227,12 @@ def demonstrate(directory: Path):
                         key=lambda cap: (cap["step"], cap["action"], cap["resource"], cap["recipient"])),
                 },
                 "observations": [
-                    {"action": allowed["action"], "resource": allowed["resource"],
+                    {"operation_id_hash": allowed_hash,
+                     "action": allowed["action"], "resource": allowed["resource"],
                      "status": releases[0]["status"], "reason": releases[0]["reason"],
                      "protected_tool_started": True, "effect_journal_entries": 1},
-                    {"action": denied["action"], "resource": denied["resource"],
+                    {"operation_id_hash": denied_hash,
+                     "action": denied["action"], "resource": denied["resource"],
                      "status": decisions[0]["status"], "reason": decisions[0]["reason"],
                      "protected_tool_started": False, "effect_journal_entries": 0},
                 ],
@@ -117,6 +242,15 @@ def demonstrate(directory: Path):
                 "task_completion_claimed": False,
                 "effect_definition": "Durable receipt in the fictional receiver's effect journal.",
                 "boundary_limit": "Shared-user local processes do not demonstrate OS or AWS isolation.",
+                "observability": {
+                    "schema_version": 1,
+                    "join_keys": ["run_id_hash", "operation_id_hash"],
+                    "scope_note": "Operation identifiers are correlated only within the same run.",
+                    "authority_source": "controller",
+                    "timing_note": "Each source retains its own event order; cross-process clocks are not ordered.",
+                    "agent_trace": agent_trace,
+                    "controller_trace": {"source": "controller", "events": controller_events},
+                },
                 "checks": checks,
             }
     output = directory / "contract-report.json"

@@ -30,6 +30,7 @@ SOURCE_FILES = (
     "workflows/__init__.py", "workflows/definitions.py",
     "integration/__init__.py", "integration/client.py", "integration/live_model.py",
     "integration/live_worker.py", "integration/worker.py", "integration/process.py",
+    "integration/telemetry.py",
     "deploy/state_guard.py", "deploy/self_host.py", "deploy/bootstrap/__init__.py",
     "deploy/bootstrap/bundle.py", "deploy/bootstrap/launch.py",
     "deploy/bootstrap/initialize.py", "deploy/controller-worker.nginx.conf",
