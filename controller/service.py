@@ -419,8 +419,12 @@ class Broker:
         if old:
             authority.settle(ticket, json.loads(old["receipt"]), old["cost"])
             result = authority.release_result(ticket, **scope)
-            self.record(job, run_id, "execution_replayed", status=result.status, reason=result.reason,
-                        operation_id_hash=operation_hash)
+            try:
+                self.record(job, run_id, "execution_replayed", status=result.status, reason=result.reason,
+                            operation_id_hash=operation_hash)
+            except Exception:
+                # Keep the settled receipt private when replay logging fails.
+                return {"status": "held", "reason": "outcome_unknown"}
             value = self.result(result)
             value["replayed"] = True
             return value
@@ -430,7 +434,7 @@ class Broker:
             if ticket in self.active:
                 return {"status": "held", "reason": "already_in_flight"}
             self.active[ticket] = (job["job_id"], operation_hash, event)
-        claimed = None
+        claimed, settled = None, None
         try:
             with self.gate(job):
                 if self.job(job["job_id"])["final_outcome"] == "completed":
@@ -471,10 +475,17 @@ class Broker:
                         operation_id_hash=operation_hash)
             return value
         except Exception:
-            if claimed is not None and claimed.status == "allowed":
-                authority.mark_unknown(ticket)
-            self.record(job, run_id, "tool_error", reason="outcome_unknown", operation_id_hash=operation_hash,
-                        usage={"tokens": None, "microusd": None})
+            if (claimed is not None and claimed.status == "allowed"
+                    and not (settled is not None and settled.status == "allowed")):
+                try:
+                    authority.mark_unknown(ticket)
+                except Exception:
+                    pass  # A claimed or settled ticket cannot trigger a new effect.
+            try:
+                self.record(job, run_id, "tool_error", reason="outcome_unknown", operation_id_hash=operation_hash,
+                            usage={"tokens": None, "microusd": None})
+            except Exception:
+                pass  # Missing diagnostics do not change the durable outcome.
             return {"status": "held", "reason": "outcome_unknown"}
         finally:
             with self.lock:
@@ -500,8 +511,13 @@ class Broker:
             result = self.live_model.respond(
                 self.authority(job), token, body,
                 record=lambda event, **data: self.record(job, run_id, event, **data))
-            self.record(job, run_id, "model_decision", status=result["status"], reason=result["reason"],
-                        operation_id_hash=digest(body["operation_id"]))
+            try:
+                self.record(job, run_id, "model_decision", status=result["status"], reason=result["reason"],
+                            operation_id_hash=digest(body["operation_id"]))
+            except Exception:
+                # Do not disclose a result when its decision cannot be recorded.
+                # Any claimed or settled operation keeps its durable state.
+                return {"status": "held", "reason": "model_outcome_unknown", "usage": None}
             return result
         finally:
             with self.lock:

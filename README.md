@@ -98,6 +98,15 @@ state, verified TLS and controlled network access. The local demo establishes
 application behavior, and AWS templates need installation-specific review.
 Read the [security model](SECURITY.md) before enabling live access.
 
+## Codex skill
+
+This checkout includes the [secure-agent-controller skill](.agents/skills/secure-agent-controller/SKILL.md),
+a repository-specific companion to `deploy-secure-aws-openai-agents`. In Codex,
+invoke `$secure-agent-controller` or choose it from `/skills` when reviewing or
+extending a controlled workflow. It guides work against the existing code and
+evidence; it does not enforce permissions. It is available from this checkout,
+not installed globally.
+
 ## Project information
 
 - [MIT license](LICENSE) and [source provenance](docs/PROVENANCE.md)

@@ -13,6 +13,14 @@ def serialized(result):
     return json.dumps(result["agent_trace"], separators=(",", ":"), allow_nan=False)
 
 
+def test_audit_unavailable_protocol_reason_is_retained():
+    trace = AgentTrace()
+    trace.emit("model_result", status="denied", reason="audit_unavailable")
+    trace.emit("action_result", status="denied", reason="unreviewed_secret_fixture")
+    assert trace.events[-2]["reason"] == "audit_unavailable"
+    assert trace.events[-1]["reason"] == "unrecognized_reason"
+
+
 def test_hooks_ignore_sensitive_sdk_arguments_and_export_nothing(monkeypatch):
     # Inputs have dangerous conversion methods: hooks must not inspect contents.
     class Sensitive:

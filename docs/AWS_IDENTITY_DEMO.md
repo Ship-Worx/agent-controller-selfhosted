@@ -27,7 +27,7 @@ mode `0700`. Supply the SHA-256 of the exact reviewed principal ARN, not its
 display name. The example values below are fictional.
 
 ```sh
-python -m demo.aws_identity \
+.venv/bin/python -m demo.aws_identity \
   --bridge-dir .runtime/aws-identity-private \
   --expected-account 123456789012 \
   --region us-east-1 \

@@ -50,6 +50,16 @@ def source_rows(output, source):
     return [row for row in output["events"] if row["metadata"]["source"] == source]
 
 
+def test_audit_unavailable_protocol_reason_survives_export():
+    report = trace_report()
+    report["observability"]["agent_trace"]["events"][4]["reason"] = "audit_unavailable"
+    report["observability"]["controller_trace"]["events"][6]["reason"] = "audit_unavailable"
+    output = build_export(report, PROJECT)
+    for source in ("agent_sdk", "controller"):
+        assert any(row["metadata"].get("reason") == "audit_unavailable"
+                   for row in source_rows(output, source))
+
+
 def test_complete_curated_paths_are_correlated_without_claiming_authenticity_or_effect_absence():
     output = build_export(trace_report(), PROJECT)
     assert set(output["evaluations"].values()) == {"pass"}
@@ -221,6 +231,16 @@ def test_missing_allowed_execution_evidence_is_inconclusive_and_duplicate_dispat
     assert build_export(report, PROJECT)["evaluations"]["allowed_path_observed"] == "fail"
 
 
+@pytest.mark.parametrize("index", [2, 3, 4])
+def test_missing_bound_allowed_execution_evidence_affects_only_allowed_check(index):
+    report = trace_report()
+    del report["observability"]["controller_trace"]["events"][index]
+    assert build_export(report, PROJECT)["evaluations"] == {
+        "trace_correlation": "pass", "allowed_path_observed": "inconclusive",
+        "denied_dispatch_consistency": "pass", "policy_binding_consistency": "pass",
+    }
+
+
 def test_agent_latest_binding_is_compared_with_latest_controller_context_not_earlier_epoch():
     report = trace_report()
     events = report["observability"]["controller_trace"]["events"]
@@ -287,11 +307,118 @@ def test_controller_internal_policy_conflict_fails_without_claiming_external_eff
     assert output["summary"]["effect_absence_proven"] is False
 
 
-def test_missing_operation_binding_cannot_be_ignored_in_correlation_check():
+@pytest.mark.parametrize("source,index", [
+    ("agent_trace", 1), ("agent_trace", 2), ("agent_trace", 3), ("agent_trace", 4),
+    ("controller_trace", 0), ("controller_trace", 1), ("controller_trace", 2),
+    ("controller_trace", 3), ("controller_trace", 4), ("controller_trace", 5),
+    ("controller_trace", 6),
+])
+def test_unbound_action_event_makes_action_checks_inconclusive(source, index):
     report = trace_report()
+    del report["observability"][source]["events"][index]["operation_id_hash"]
+    evaluations = build_export(report, PROJECT)["evaluations"]
+    assert evaluations == {"trace_correlation": "inconclusive", "allowed_path_observed": "inconclusive",
+                           "denied_dispatch_consistency": "inconclusive", "policy_binding_consistency": "pass"}
+
+
+def test_unbound_action_event_does_not_mask_known_contradiction():
+    report = trace_report()
+    report["observability"]["agent_trace"]["events"][4]["status"] = "allowed"
     report["observability"]["agent_trace"]["events"].append(
         {"seq": 7, "elapsed_ms": 50, "event": "action_result", "status": "allowed"})
-    assert build_export(report, PROJECT)["evaluations"]["trace_correlation"] == "inconclusive"
+    evaluations = build_export(report, PROJECT)["evaluations"]
+    assert evaluations["trace_correlation"] == "fail"
+    assert evaluations["allowed_path_observed"] == "fail"
+    assert evaluations["denied_dispatch_consistency"] == "fail"
+
+
+@pytest.mark.parametrize("source,event", [
+    ("agent_trace", "action_proposed"), ("agent_trace", "action_result"),
+    ("controller_trace", "action_proposed"), ("controller_trace", "decision"),
+    ("controller_trace", "tool_started"), ("controller_trace", "tool_finished"),
+    ("controller_trace", "result_release"),
+])
+def test_orphan_bound_action_event_makes_action_checks_inconclusive(source, event):
+    report = trace_report()
+    events = report["observability"][source]["events"]
+    if source == "agent_trace":
+        orphan = {"seq": 7, "elapsed_ms": 50, "event": event, "operation_id_hash": "9" * 64}
+    else:
+        orphan = {**events[-1], "event_id": 8, "event": event, "operation_id_hash": "9" * 64}
+        orphan.pop("status", None)
+        orphan.pop("reason", None)
+    events.append(orphan)
+    evaluations = build_export(report, PROJECT)["evaluations"]
+    assert evaluations == {"trace_correlation": "inconclusive", "allowed_path_observed": "inconclusive",
+                           "denied_dispatch_consistency": "inconclusive", "policy_binding_consistency": "pass"}
+
+
+@pytest.mark.parametrize("event", ["tool_started", "tool_finished"])
+def test_orphan_dispatch_does_not_mask_known_contradiction(event):
+    report = trace_report()
+    report["observability"]["agent_trace"]["events"][4]["status"] = "allowed"
+    events = report["observability"]["controller_trace"]["events"]
+    orphan = {**events[-1], "event_id": 8, "event": event, "operation_id_hash": "9" * 64}
+    orphan.pop("status", None)
+    orphan.pop("reason", None)
+    events.append(orphan)
+    evaluations = build_export(report, PROJECT)["evaluations"]
+    assert evaluations["trace_correlation"] == "fail"
+    assert evaluations["allowed_path_observed"] == "fail"
+    assert evaluations["denied_dispatch_consistency"] == "fail"
+
+
+@pytest.mark.parametrize("agent_status,decision_status", [
+    ("held", "held"), (None, None), ("held", "reserved"),
+    ("allowed", "unknown"), ("denied", "reserved"),
+])
+@pytest.mark.parametrize("conflict", [False, True])
+def test_unclassified_correlated_outcome_cannot_pass_action_checks(agent_status, decision_status, conflict):
+    report = trace_report()
+    agent_events = report["observability"]["agent_trace"]["events"]
+    if conflict:
+        agent_events[4]["status"] = "allowed"
+    agent_events.extend([
+        {"seq": 7, "elapsed_ms": 50, "event": "action_proposed", "operation_id_hash": "9" * 64},
+        {"seq": 8, "elapsed_ms": 51, "event": "action_result", "operation_id_hash": "9" * 64},
+    ])
+    if agent_status is not None:
+        agent_events[-1]["status"] = agent_status
+    controller_events = report["observability"]["controller_trace"]["events"]
+    for event_id, name in ((8, "action_proposed"), (9, "decision")):
+        event = {**controller_events[-1], "event_id": event_id, "event": name, "operation_id_hash": "9" * 64}
+        event.pop("status", None)
+        event.pop("reason", None)
+        if name == "decision" and decision_status is not None:
+            event["status"] = decision_status
+        controller_events.append(event)
+    evaluations = build_export(report, PROJECT)["evaluations"]
+    if conflict:
+        assert evaluations["trace_correlation"] == "fail"
+        assert evaluations["allowed_path_observed"] == "fail"
+        assert evaluations["denied_dispatch_consistency"] == "fail"
+    else:
+        assert evaluations["trace_correlation"] == "pass"
+        assert evaluations["allowed_path_observed"] == "inconclusive"
+        assert evaluations["denied_dispatch_consistency"] == "inconclusive"
+    assert evaluations["policy_binding_consistency"] == "pass"
+
+
+def test_unbound_generic_events_do_not_invalidate_action_checks():
+    report = trace_report()
+    events = report["observability"]["agent_trace"]["events"]
+    events.extend([
+        {"seq": 7, "elapsed_ms": 50, "event": "tool_started"},
+        {"seq": 8, "elapsed_ms": 51, "event": "tool_finished"},
+        {"seq": 9, "elapsed_ms": 52, "event": "tool_started", "operation_id_hash": "9" * 64},
+        {"seq": 10, "elapsed_ms": 53, "event": "tool_finished", "operation_id_hash": "9" * 64},
+    ])
+    events = report["observability"]["controller_trace"]["events"]
+    event = {**events[-1], "event_id": 8, "event": "job_created"}
+    for field in ("operation_id_hash", "status", "reason"):
+        event.pop(field, None)
+    events.append(event)
+    assert set(build_export(report, PROJECT)["evaluations"].values()) == {"pass"}
 
 
 def test_result_before_proposal_fails_source_consistency():

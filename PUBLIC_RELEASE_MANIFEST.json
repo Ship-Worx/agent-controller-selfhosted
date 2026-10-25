@@ -2,6 +2,16 @@
   "schema_version": 1,
   "files": [
     {
+      "path": ".agents/skills/secure-agent-controller/SKILL.md",
+      "bytes": 6906,
+      "sha256": "b70deaa7fcb78c0d56280045f0cd867cc96f868d6e89f0cf4cdfc74c8e3a37a4"
+    },
+    {
+      "path": ".agents/skills/secure-agent-controller/agents/openai.yaml",
+      "bytes": 221,
+      "sha256": "fe3c891acdf77002fd566829ba5723039aa817b61f5aa9c4f481db1d9dde56be"
+    },
+    {
       "path": ".gitignore",
       "bytes": 293,
       "sha256": "f47560b4a197a00c086a55758693bea64ae5428fa00e97280b5023d1c4ae7c40"
@@ -18,8 +28,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 5314,
-      "sha256": "3f82db984ab8a787a0c9abf875c3ae0119647ff7778fe3b713fb35b5cf7a9bc7"
+      "bytes": 5781,
+      "sha256": "1fa4147d89bcc3dcffb208549bce9407592c5e128e7eecc95ceac939c694c114"
     },
     {
       "path": "SECURITY.md",
@@ -53,8 +63,8 @@
     },
     {
       "path": "controller/live_model.py",
-      "bytes": 17140,
-      "sha256": "89b8c9ae1aa88f93e288fdf573ff92cf2a285a4fad37a21906c9bd9f9659829b"
+      "bytes": 18205,
+      "sha256": "6a810a60a69a368dab67093d4543697a043f58f8d96520f41ab7ed16419a60d9"
     },
     {
       "path": "controller/policy_review.py",
@@ -68,8 +78,8 @@
     },
     {
       "path": "controller/service.py",
-      "bytes": 38267,
-      "sha256": "3e905f2ddf0c6f276e6250a01a59dd7ba20589abaa0c2373e18a1999df536c96"
+      "bytes": 39152,
+      "sha256": "869f391d467c6a06bbcdf8e43793e10c8dc6e4478df2bfa96940942abfb4270d"
     },
     {
       "path": "controller/validators.py",
@@ -433,13 +443,13 @@
     },
     {
       "path": "docs/AWS_IDENTITY_DEMO.md",
-      "bytes": 6410,
-      "sha256": "e94e16e38a3b8bcaf998bd996a0caae86cb9a9d9a89c64a88a4e7399eab99aec"
+      "bytes": 6420,
+      "sha256": "6ca54ae3df28778a9b4c26790d43346efc76715a29eb575e4db8c0a7361bdf6c"
     },
     {
       "path": "docs/BRAINTRUST.md",
-      "bytes": 8056,
-      "sha256": "f281b5299885aeb30370456326a2cee0f177e700952f233e8a1a0995f334d80a"
+      "bytes": 8699,
+      "sha256": "94243baa885f0b3bb832f9ce37932e27a9a53d157b63ac01167775fa1e0b261e"
     },
     {
       "path": "docs/OBSERVABILITY.md",
@@ -448,8 +458,8 @@
     },
     {
       "path": "docs/POLICY_REVIEW.md",
-      "bytes": 6928,
-      "sha256": "499227e5dc1670221c1d904910d9758666aa47295198da745033ad33a18597c2"
+      "bytes": 6938,
+      "sha256": "aba493bca74e4d09d1588744a124c271634df64f4bf73331175fe9e7f27dcde4"
     },
     {
       "path": "docs/PROVENANCE.md",
@@ -508,13 +518,13 @@
     },
     {
       "path": "integration/telemetry.py",
-      "bytes": 8981,
-      "sha256": "d847b582fee4a1c0abae9043e14e890162cb3540ae7c0fbe342c8629d7613ab2"
+      "bytes": 9002,
+      "sha256": "645dd0e8cf2733e03fcfd51cb4b6b30be17ed3b95b3e11104adfa69c3b4300cd"
     },
     {
       "path": "integration/trace_export.py",
-      "bytes": 18672,
-      "sha256": "bd5fb2e30edb8f28227d35017aeb0660c1dff73ceebe2ec3c7832d356dc8c3a9"
+      "bytes": 19800,
+      "sha256": "9d1f1a01abdeb7b5479b2552bd8f3fd55c101f70ad2769e94d06608b81d15d00"
     },
     {
       "path": "integration/worker.py",
@@ -523,8 +533,8 @@
     },
     {
       "path": "public-release-files.json",
-      "bytes": 5940,
-      "sha256": "289754828854296628a0457b06f91e0cd2a312f93f829ee14607bac92c74a20b"
+      "bytes": 6134,
+      "sha256": "22d394ab9b45bb7c776b001b273a69c362e96f78c61111c1c6f5bafbf3c527c1"
     },
     {
       "path": "pyproject.toml",
@@ -543,8 +553,8 @@
     },
     {
       "path": "scripts/export_public.py",
-      "bytes": 4127,
-      "sha256": "3172901b294a2aac163b71c3d05765a2121e2181743120a8b248a42d1a4774fc"
+      "bytes": 4392,
+      "sha256": "2d15bfeb0ae640a98c8c8c87ed57a7b93210d9401a0b777c5ca7696c5858b45e"
     },
     {
       "path": "scripts/install.sh",
@@ -577,6 +587,11 @@
       "sha256": "566b80e876ff325371dedd4724450149a3f9319ea73bb3f3e0f89fc2f8125233"
     },
     {
+      "path": "tests/test_callback_recovery.py",
+      "bytes": 25775,
+      "sha256": "1e2f1c1f888b997a23d2414485b019dcef6c491b3608458fd2584f2c0c7d964a"
+    },
+    {
       "path": "tests/test_contract_demo.py",
       "bytes": 4515,
       "sha256": "177322237229d3b62323de62a6f3e348dc9aa48e65b49397d0048ce9c3d68a35"
@@ -590,6 +605,11 @@
       "path": "tests/test_durable.py",
       "bytes": 29796,
       "sha256": "7ac989e7068510612e9dedf4099b0bc4a22db3d4daaffadb6244033f0be8f81d"
+    },
+    {
+      "path": "tests/test_export_public.py",
+      "bytes": 2875,
+      "sha256": "2a3f0d965d9bd85f564c2d8cf29bcabfb36c123170c48fa92d14d782aac82260"
     },
     {
       "path": "tests/test_guarded_startup.py",
@@ -638,8 +658,8 @@
     },
     {
       "path": "tests/test_telemetry.py",
-      "bytes": 8213,
-      "sha256": "484d0d8215bccc2dabc5454050a78f7c3fef663d3a10e5ad056cf0e75aa7411e"
+      "bytes": 8583,
+      "sha256": "94b852158c046e12de2aa966be0347db2978ac8bbd691769836acbe1d480e4d9"
     },
     {
       "path": "tests/test_trace_correlation.py",
@@ -648,8 +668,8 @@
     },
     {
       "path": "tests/test_trace_export.py",
-      "bytes": 17563,
-      "sha256": "3deb57f6b5771cb487ac14265e73842fdba39a898b0c3db0317d49fdb1476e59"
+      "bytes": 23993,
+      "sha256": "3c0951fcbe4df21119a39855e295552a60be5f54e6810b57d2dac026f8837528"
     },
     {
       "path": "tests/test_worker_process.py",
