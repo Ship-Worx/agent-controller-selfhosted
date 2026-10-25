@@ -184,11 +184,19 @@ def _evaluate(sources):
     groups = _groups(sources)
     complete = all(trace and trace["complete"] for trace in (agent, controller))
     correlation, allowed, denied = [], [], []
-    # An unbound action observation cannot silently disappear from the checks.
-    for trace in (agent, controller):
+    # An unbound action observation cannot be assigned to an allowed or denied
+    # operation, so it makes each action check incomplete. SDK tool callbacks
+    # describe generic activity and intentionally have no operation binding.
+    action_events = {
+        "agent_sdk": {"action_proposed", "action_result"},
+        "controller": {"action_proposed", "decision", "tool_started", "tool_finished", "result_release"},
+    }
+    for source, trace in (("agent_sdk", agent), ("controller", controller)):
         for event in trace["events"] if trace else []:
-            if event["event"] in {"action_proposed", "action_result", "decision", "result_release"} and not event.get("operation_id_hash"):
+            if event["event"] in action_events[source] and not event.get("operation_id_hash"):
                 correlation.append("inconclusive")
+                allowed.append("inconclusive")
+                denied.append("inconclusive")
     for group in groups.values():
         ae, ce = group["agent_sdk"], group["controller"]
         ap = [e for e in ae if e["event"] == "action_proposed"]
@@ -198,8 +206,20 @@ def _evaluate(sources):
         releases = [e for e in ce if e["event"] == "result_release"]
         starts = [e for e in ce if e["event"] == "tool_started"]
         finishes = [e for e in ce if e["event"] == "tool_finished"]
-        if not (ap or ar or cp or decisions or releases):
+        if not (ap or ar or cp or decisions or releases or starts or finishes):
             continue  # SDK model operations are outside these action-specific checks.
+        # A bound but incomplete action group is still observed action evidence.
+        # In particular, do not silently drop an orphan controller dispatch.
+        if not (ap and ar and cp and decisions):
+            correlation.append("inconclusive")
+            allowed.append("inconclusive")
+            denied.append("inconclusive")
+        elif (ar[-1].get("status"), decisions[-1].get("status")) not in {
+            ("allowed", "reserved"), ("denied", "denied"),
+        }:
+            # Matched identities can still have an unresolved action outcome.
+            allowed.append("inconclusive")
+            denied.append("inconclusive")
         final_controller = releases[-1] if releases else decisions[-1] if decisions else None
         contradiction = bool(ar and final_controller and ar[-1].get("status") in {"allowed", "denied"}
                              and final_controller.get("status") in {"allowed", "denied"}

@@ -443,13 +443,13 @@
     },
     {
       "path": "docs/AWS_IDENTITY_DEMO.md",
-      "bytes": 6410,
-      "sha256": "e94e16e38a3b8bcaf998bd996a0caae86cb9a9d9a89c64a88a4e7399eab99aec"
+      "bytes": 6420,
+      "sha256": "6ca54ae3df28778a9b4c26790d43346efc76715a29eb575e4db8c0a7361bdf6c"
     },
     {
       "path": "docs/BRAINTRUST.md",
-      "bytes": 8056,
-      "sha256": "f281b5299885aeb30370456326a2cee0f177e700952f233e8a1a0995f334d80a"
+      "bytes": 8699,
+      "sha256": "94243baa885f0b3bb832f9ce37932e27a9a53d157b63ac01167775fa1e0b261e"
     },
     {
       "path": "docs/OBSERVABILITY.md",
@@ -458,8 +458,8 @@
     },
     {
       "path": "docs/POLICY_REVIEW.md",
-      "bytes": 6928,
-      "sha256": "499227e5dc1670221c1d904910d9758666aa47295198da745033ad33a18597c2"
+      "bytes": 6938,
+      "sha256": "aba493bca74e4d09d1588744a124c271634df64f4bf73331175fe9e7f27dcde4"
     },
     {
       "path": "docs/PROVENANCE.md",
@@ -523,8 +523,8 @@
     },
     {
       "path": "integration/trace_export.py",
-      "bytes": 18697,
-      "sha256": "1505a42188efa5f6af9f63a23e362967245c9957b64fcf6da104d23dc7eb509c"
+      "bytes": 19800,
+      "sha256": "9d1f1a01abdeb7b5479b2552bd8f3fd55c101f70ad2769e94d06608b81d15d00"
     },
     {
       "path": "integration/worker.py",
@@ -668,8 +668,8 @@
     },
     {
       "path": "tests/test_trace_export.py",
-      "bytes": 18057,
-      "sha256": "69f66820f735a8179b5d24a3495e629006c561951263a986a4ab078ebff8a701"
+      "bytes": 23993,
+      "sha256": "3c0951fcbe4df21119a39855e295552a60be5f54e6810b57d2dac026f8837528"
     },
     {
       "path": "tests/test_worker_process.py",

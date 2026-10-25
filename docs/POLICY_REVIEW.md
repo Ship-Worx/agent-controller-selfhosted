@@ -35,7 +35,7 @@ after the processes stop. This scenario demonstrates permission enforcement; it
 does not claim the worker completed its assigned report-writing task. The
 existing `demo.run` still demonstrates complete workflows, Stop and recovery.
 The local processes share an OS user; AWS/OS isolation needs deployment testing.
-Run `python -m demo.observe` to print both trace streams; see
+Run `.venv/bin/python -m demo.observe` to print both trace streams; see
 [observability](OBSERVABILITY.md) for their interpretation and coverage.
 
 ## Inspect the current contract

@@ -79,8 +79,11 @@ timestamps from separate processes do not establish a precise combined
 execution timeline. Stable row IDs identify the same projected evidence on a
 subsequent explicit export.
 
-Prompts, model responses, raw tool arguments/results, record contents, assigned
-scope descriptions, capabilities, credentials and raw receipts are excluded.
+Fields containing prompts, model responses, raw tool arguments/results, record
+contents, assigned scope descriptions, capabilities, credentials and raw
+receipts are excluded. The adapter checks the format of supplied hash and pin
+values, but cannot prove they are hashes or contain no sensitive information.
+Export only trusted curated reports and inspect the preview before sending.
 Hashes and policy pins can still link records across views: treat exported
 metadata as private operational information, rather than anonymous data.
 
@@ -93,10 +96,16 @@ The adapter produces four deterministic evidence-consistency checks:
 | `denied_dispatch_consistency` | Denied decision and recorded dispatch consistency |
 | `policy_binding_consistency` | Configuration, policy and authority bindings |
 
-Missing, truncated or mismatched binding evidence is **inconclusive**. These
-checks do not prove effect absence or record integrity. No LLM judge or paid
-model call is used. Stop, restart and unknown runtime paths remain covered by
-existing controller tests; they are not new Braintrust evaluations.
+Missing, truncated or mismatched binding evidence is **inconclusive**. An unbound
+action event or a group missing its agent proposal/result or controller
+proposal/decision makes all action checks inconclusive, unless other evidence
+produces a failure. A correlated group with an unclassified outcome makes the
+two outcome checks inconclusive; missing execution evidence affects the allowed
+path check. SDK tool callbacks are generic observations and do not establish a
+protected action. These checks do not prove effect absence or record integrity.
+No LLM judge or paid model call is used. Stop, restart and unknown runtime paths
+remain covered by existing controller tests; they are not new Braintrust
+evaluations.
 
 A file can be modified by whoever controls its filesystem. This adapter does
 not authenticate the origin of a report or turn an imported report into a
