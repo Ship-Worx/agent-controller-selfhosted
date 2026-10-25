@@ -118,6 +118,7 @@
     "tests/test_aws_identity.py",
     "tests/test_braintrust_export.py",
     "tests/test_broker_ownership.py",
+    "tests/test_callback_recovery.py",
     "tests/test_contract_demo.py",
     "tests/test_controller_tls.py",
     "tests/test_durable.py",

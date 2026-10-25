@@ -38,6 +38,7 @@ _REASONS = frozenset({
     "model_outcome_unknown", "action_outcome_unknown", "outcome_unknown", "operation_unknown",
     "controller_unavailable", "invalid_controller_response", "invalid_action_response",
     "invalid_model_response", "sdk_run_failed", "authorization_denied", "model_authorization_denied",
+    "audit_unavailable",
     "completion_denied", "completion_unconfirmed", "completion_criteria_unmet", "completed",
     "root_required", "job_complete", "budget_exhausted", "call_limit", "project_budget_denied",
     "project_budget_unavailable", "missing_context", "missing_payload_fields", "input_limit",

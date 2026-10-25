@@ -50,6 +50,16 @@ def source_rows(output, source):
     return [row for row in output["events"] if row["metadata"]["source"] == source]
 
 
+def test_audit_unavailable_protocol_reason_survives_export():
+    report = trace_report()
+    report["observability"]["agent_trace"]["events"][4]["reason"] = "audit_unavailable"
+    report["observability"]["controller_trace"]["events"][6]["reason"] = "audit_unavailable"
+    output = build_export(report, PROJECT)
+    for source in ("agent_sdk", "controller"):
+        assert any(row["metadata"].get("reason") == "audit_unavailable"
+                   for row in source_rows(output, source))
+
+
 def test_complete_curated_paths_are_correlated_without_claiming_authenticity_or_effect_absence():
     output = build_export(trace_report(), PROJECT)
     assert set(output["evaluations"].values()) == {"pass"}

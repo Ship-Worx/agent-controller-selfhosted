@@ -3,8 +3,8 @@
   "files": [
     {
       "path": ".agents/skills/secure-agent-controller/SKILL.md",
-      "bytes": 6871,
-      "sha256": "dcd31f5e23e169990588370efdcc493077f156c799bd9fe745f67fab9fa78910"
+      "bytes": 6906,
+      "sha256": "b70deaa7fcb78c0d56280045f0cd867cc96f868d6e89f0cf4cdfc74c8e3a37a4"
     },
     {
       "path": ".agents/skills/secure-agent-controller/agents/openai.yaml",
@@ -63,8 +63,8 @@
     },
     {
       "path": "controller/live_model.py",
-      "bytes": 17140,
-      "sha256": "89b8c9ae1aa88f93e288fdf573ff92cf2a285a4fad37a21906c9bd9f9659829b"
+      "bytes": 17903,
+      "sha256": "031fbd4736821daa324feeb701282c6f57686ac5b30453d1cedddf2576139c91"
     },
     {
       "path": "controller/policy_review.py",
@@ -78,8 +78,8 @@
     },
     {
       "path": "controller/service.py",
-      "bytes": 38267,
-      "sha256": "3e905f2ddf0c6f276e6250a01a59dd7ba20589abaa0c2373e18a1999df536c96"
+      "bytes": 39152,
+      "sha256": "869f391d467c6a06bbcdf8e43793e10c8dc6e4478df2bfa96940942abfb4270d"
     },
     {
       "path": "controller/validators.py",
@@ -518,13 +518,13 @@
     },
     {
       "path": "integration/telemetry.py",
-      "bytes": 8981,
-      "sha256": "d847b582fee4a1c0abae9043e14e890162cb3540ae7c0fbe342c8629d7613ab2"
+      "bytes": 9002,
+      "sha256": "645dd0e8cf2733e03fcfd51cb4b6b30be17ed3b95b3e11104adfa69c3b4300cd"
     },
     {
       "path": "integration/trace_export.py",
-      "bytes": 18672,
-      "sha256": "bd5fb2e30edb8f28227d35017aeb0660c1dff73ceebe2ec3c7832d356dc8c3a9"
+      "bytes": 18697,
+      "sha256": "1505a42188efa5f6af9f63a23e362967245c9957b64fcf6da104d23dc7eb509c"
     },
     {
       "path": "integration/worker.py",
@@ -533,8 +533,8 @@
     },
     {
       "path": "public-release-files.json",
-      "bytes": 6095,
-      "sha256": "b3b63dc0ef9aa73209b94450deeb9fdedb85995631b01500a32bbe236f214806"
+      "bytes": 6134,
+      "sha256": "22d394ab9b45bb7c776b001b273a69c362e96f78c61111c1c6f5bafbf3c527c1"
     },
     {
       "path": "pyproject.toml",
@@ -585,6 +585,11 @@
       "path": "tests/test_broker_ownership.py",
       "bytes": 9338,
       "sha256": "566b80e876ff325371dedd4724450149a3f9319ea73bb3f3e0f89fc2f8125233"
+    },
+    {
+      "path": "tests/test_callback_recovery.py",
+      "bytes": 14123,
+      "sha256": "7a3da1b9d8c92a6cb048483f12c83682a69e0a5a36aca2366e803d15a77e364e"
     },
     {
       "path": "tests/test_contract_demo.py",
@@ -653,8 +658,8 @@
     },
     {
       "path": "tests/test_telemetry.py",
-      "bytes": 8213,
-      "sha256": "484d0d8215bccc2dabc5454050a78f7c3fef663d3a10e5ad056cf0e75aa7411e"
+      "bytes": 8583,
+      "sha256": "94b852158c046e12de2aa966be0347db2978ac8bbd691769836acbe1d480e4d9"
     },
     {
       "path": "tests/test_trace_correlation.py",
@@ -663,8 +668,8 @@
     },
     {
       "path": "tests/test_trace_export.py",
-      "bytes": 17563,
-      "sha256": "3deb57f6b5771cb487ac14265e73842fdba39a898b0c3db0317d49fdb1476e59"
+      "bytes": 18057,
+      "sha256": "69f66820f735a8179b5d24a3495e629006c561951263a986a4ab078ebff8a701"
     },
     {
       "path": "tests/test_worker_process.py",

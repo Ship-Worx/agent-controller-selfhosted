@@ -179,8 +179,12 @@ class LiveModelGateway:
         attempt = Attempt(body["operation_id"], "model", "model.respond", MODEL_ID,
                           "model-provider", {"prompt": body["prompt"], "pricing_pin": self.prices.pin})
         operation_hash = hashlib.sha256(body["operation_id"].encode()).hexdigest()
-        record("model_proposed", operation_id_hash=operation_hash, step_id="model", action="model.respond",
-               proposal_sha256=hashlib.sha256(body["prompt"].encode()).hexdigest())
+        try:
+            record("model_proposed", operation_id_hash=operation_hash, step_id="model", action="model.respond",
+                   proposal_sha256=hashlib.sha256(body["prompt"].encode()).hexdigest())
+        except Exception:
+            # Admission and reservations have not started.
+            return {"status": "denied", "reason": "audit_unavailable", "usage": None}
         reserved = authority.reserve(token, attempt)
         if reserved.status == "allowed":
             released = authority.release_result(reserved.ticket, **MODEL_SCOPE)
@@ -228,9 +232,9 @@ class LiveModelGateway:
             # reservation remains conservative; do not rewrite core state.
             self.project_budget.settle(key, 0, evidence_refs=["receiver:no_provider_dispatch"])
             return self._result(claimed)
-        record("model_started", operation_id_hash=operation_hash, step_id="model", action="model.respond",
-               usage={"input_tokens": None, "output_tokens": None, "microusd": None})
         try:
+            record("model_started", operation_id_hash=operation_hash, step_id="model", action="model.respond",
+                   usage={"input_tokens": None, "output_tokens": None, "microusd": None})
             expired = pricing_denial_before_dispatch(claimed=True)
             if expired:
                 return expired
@@ -242,20 +246,32 @@ class LiveModelGateway:
             settled = authority.settle(reserved.ticket, receipt, cost)
             if settled.status != "allowed":
                 raise ValueError("workflow_settlement_failed")
-            record("model_finished", operation_id_hash=operation_hash, status="measured",
-                   usage={**receipt["usage"], "microusd": cost})
-            return self._result(authority.release_result(reserved.ticket, **MODEL_SCOPE))
         except Exception:
             # Includes transport failure, missing usage, invalid output, and
-            # interruption after dispatch. Never assume errors are free.
-            authority.mark_unknown(reserved.ticket)
+            # interruption after claim. Never assume errors are free. A failed
+            # state write leaves the already-claimed ticket non-replayable.
+            try:
+                authority.mark_unknown(reserved.ticket)
+            except Exception:
+                pass
             try:
                 self.project_budget.mark_unknown(key, evidence_refs=["provider:outcome_unknown"])
             except Exception:
                 pass  # Already-settled/retained records cannot authorize a retry.
-            record("model_unknown", operation_id_hash=operation_hash,
-                   usage={"input_tokens": None, "output_tokens": None, "microusd": None})
+            try:
+                record("model_unknown", operation_id_hash=operation_hash,
+                       usage={"input_tokens": None, "output_tokens": None, "microusd": None})
+            except Exception:
+                pass  # The durable and project records remain authoritative.
             return {"status": "held", "reason": "model_outcome_unknown", "usage": None}
+        try:
+            record("model_finished", operation_id_hash=operation_hash, status="measured",
+                   usage={**receipt["usage"], "microusd": cost})
+        except Exception:
+            # Both settlements are durable. Withhold this response; replay
+            # rechecks current authority and never repeats the provider call.
+            return {"status": "held", "reason": "model_outcome_unknown", "usage": None}
+        return self._result(authority.release_result(reserved.ticket, **MODEL_SCOPE))
 
     @staticmethod
     def _result(result, *, replayed=False):
