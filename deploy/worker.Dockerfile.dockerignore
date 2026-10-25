@@ -6,6 +6,7 @@
 !integration/client.py
 !integration/live_model.py
 !integration/live_worker.py
+!integration/telemetry.py
 !deploy/
 !deploy/agentcore_worker.py
 !deploy/worker.Dockerfile

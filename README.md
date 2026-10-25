@@ -38,6 +38,42 @@ exercises two workflows, denied actions, bounded delegation/shared budgets,
 Stop/cancellation and restart without replayed effects. Keep generated state
 and traces out of version control.
 
+To see the contract and a blocked scope violation directly, run
+`.venv/bin/python -m demo.contract`. The SDK worker reads its assigned fictional
+record, then attempts another record; the controller denies that second action
+and verifies zero additional effects. Only a sanitized educational report is
+retained.
+
+To see correlated agent activity and controller decisions, run
+`.venv/bin/python -m demo.observe`. It prints both event streams grouped by the
+same run and operation hashes, and retains an allowlisted JSON trace report.
+[Observability](docs/OBSERVABILITY.md) explains the evidence, privacy limits and
+test coverage. SDK remote trace export stays disabled.
+
+An [optional Braintrust exporter](docs/BRAINTRUST.md) projects that completed
+report into source-labeled trace records and deterministic evidence checks.
+It defaults to an offline preview; an explicit operator upload uses the
+operator's own Braintrust project and key, kept outside the agent.
+
+Inspect and save the existing permission contract with the offline policy tracker:
+
+```bash
+.venv/bin/python -m controller.policy_review inspect --workflow recruiting
+.venv/bin/python -m controller.policy_review capture \
+  --workflow recruiting --archive .runtime/policy-reviews
+.venv/bin/python -m controller.policy_review history --archive .runtime/policy-reviews
+```
+
+[Policy review and recovery](docs/POLICY_REVIEW.md) explains configuration
+comparisons and recovery under matching trusted rules. Review snapshots record
+rules for inspection; they grant no execution authority or policy activation.
+
+[Research lessons and status](docs/SECURITY_LEARNINGS.md) maps the Cordum,
+Arbiter and AgentArmor takeaways to implemented controls, tests and remaining
+deployment work. The [read-only AWS identity demonstration](docs/AWS_IDENTITY_DEMO.md)
+adds a closed STS receiver driven by a separate scripted SDK agent, using the
+existing durable controller gates and an explicit trusted operator bridge.
+
 ## Use your own installation
 
 [Self-hosting setup](docs/SELF_HOSTING.md) explains the operator-owned account,

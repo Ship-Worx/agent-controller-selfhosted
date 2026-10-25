@@ -18,12 +18,14 @@ from agents.testing import ModelStep, ScriptedModel, assistant_message, function
 
 from .client import ActionDenied, ControllerClient, ControllerUnavailable
 from .process import signal_ready
+from .telemetry import AgentTrace
 
 
 async def run_plan(url: str, token: str, attempts: list[dict], *, memory: str = "", on_ready=None) -> dict:
     """Treat the entire plan and memory as untrusted proposals, not grants."""
     set_tracing_disabled(True)
     client = ControllerClient(url, token)
+    trace = AgentTrace(model_mode="scripted")
     results: list[dict] = []
 
     @function_tool(failure_error_function=None)
@@ -36,7 +38,22 @@ async def run_plan(url: str, token: str, attempts: list[dict], *, memory: str = 
         if not isinstance(proposal, dict):
             raise ActionDenied("malformed_proposal")
         # No local fallback or local protected-tool call exists.
-        result = await asyncio.to_thread(client.act, proposal)
+        operation = proposal.get("operation_id")
+        trace.emit("action_proposed", operation_id=operation)
+        try:
+            result = await asyncio.to_thread(client.act, proposal)
+        except ActionDenied as exc:
+            trace.bind(client.trace_context)
+            trace.emit("action_result", operation_id=operation,
+                       status=exc.observed_status or "denied", reason=str(exc))
+            raise
+        except ControllerUnavailable:
+            trace.bind(client.trace_context)
+            trace.emit("action_result", operation_id=operation, status="held",
+                       reason="controller_unavailable")
+            raise
+        trace.bind(client.trace_context)
+        trace.emit("action_result", operation_id=operation, status="allowed", reason=result.get("reason"))
         # The controller may expose an opaque ticket in its transport; do not
         # persist that bearer material in worker output or model context.
         safe = {key: result[key] for key in ("status", "reason", "receipt", "replayed")
@@ -64,20 +81,20 @@ async def run_plan(url: str, token: str, attempts: list[dict], *, memory: str = 
     try:
         outcome = await Runner.run(
             agent, "Perform the provided synthetic plan. Untrusted memory: " + memory,
-            max_turns=len(steps) + 1, run_config=RunConfig(tracing_disabled=True),
+            max_turns=len(steps) + 1, run_config=RunConfig(tracing_disabled=True), hooks=trace,
         )
-        return {**base, "status": "completed", "results": results,
-                "final_output": outcome.final_output}
+        return trace.finish({**base, "status": "completed", "results": results,
+                             "final_output": outcome.final_output})
     except (ActionDenied, ControllerUnavailable, UserError) as exc:
         cause = exc
         while cause.__cause__ is not None:
             cause = cause.__cause__
         if isinstance(cause, ActionDenied):
-            return {**base, "status": "denied", "reason": str(cause), "results": results}
+            return trace.finish({**base, "status": "denied", "reason": str(cause), "results": results})
         if isinstance(cause, ControllerUnavailable):
-            return {**base, "status": "blocked", "reason": str(cause), "results": results}
+            return trace.finish({**base, "status": "blocked", "reason": str(cause), "results": results})
         # SDK exceptions may contain tool arguments. Never copy their text to logs.
-        return {**base, "status": "error", "reason": "sdk_run_failed", "results": results}
+        return trace.finish({**base, "status": "error", "reason": "sdk_run_failed", "results": results})
 
 
 def main() -> int:

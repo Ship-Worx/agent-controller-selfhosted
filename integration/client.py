@@ -17,6 +17,12 @@ class ControllerUnavailable(RuntimeError):
 class ActionDenied(RuntimeError):
     """A safe controller reason code, never an HTTP body or credential."""
 
+    def __init__(self, reason, *, observed_status=None):
+        super().__init__(reason)
+        self.observed_status = (observed_status if type(observed_status) is str
+                                and observed_status in {"denied", "held", "reserved", "blocked", "error", "unknown"}
+                                else None)
+
 
 class _NoRedirect(HTTPRedirectHandler):
     def redirect_request(self, req, fp, code, msg, headers, newurl):
@@ -55,6 +61,7 @@ class ControllerClient:
         if not token or any(c in token for c in "\r\n"):
             raise ValueError("worker_identity_required")
         self.url, self._token, self.timeout = url.rstrip("/"), token, timeout
+        self.trace_context = {}
         # The controller is a direct private destination. Ambient provider/build
         # proxies must never receive its bearer token. HTTPS always verifies the
         # hostname and configured public CA chain; redirects remain disabled.
@@ -91,6 +98,19 @@ class ControllerClient:
             raise ControllerUnavailable("controller_unavailable") from None
         if not isinstance(result, dict):
             raise ControllerUnavailable("invalid_controller_response")
+        # Optional telemetry does not change transport or authorization behavior.
+        # Ignore malformed metadata and never retain arbitrary response contents.
+        context = result.get("trace_context")
+        if type(context) is dict:
+            self.trace_context = {
+                key: context[key] for key in ("run_id_hash", "config_pin", "policy_pin")
+                if type(context.get(key)) is str and re.fullmatch(r"[0-9a-f]{64}", context[key])}
+            instance = context.get("controller_instance_id")
+            if type(instance) is str and re.fullmatch(r"[0-9a-f]{32}", instance):
+                self.trace_context["controller_instance_id"] = instance
+            epoch = context.get("authority_epoch")
+            if type(epoch) is int and 0 <= epoch <= 2**53 - 1:
+                self.trace_context["authority_epoch"] = epoch
         return result
 
     def act(self, attempt: dict) -> dict:
@@ -99,5 +119,8 @@ class ControllerClient:
             reason = result.get("reason", "authorization_denied")
             if not isinstance(reason, str) or not reason.replace("_", "").isalnum():
                 reason = "authorization_denied"
-            raise ActionDenied(reason[:128])
+            observed = result.get("status")
+            if type(observed) is not str or observed not in {"denied", "held", "reserved", "blocked", "error"}:
+                observed = "unknown"
+            raise ActionDenied(reason[:128], observed_status=observed)
         return result

@@ -90,6 +90,7 @@ class Broker:
         self._users = 0
         self._closing = False
         self._owner_pid = os.getpid()
+        self.controller_instance_id = secrets.token_hex(16)
         self._owner_file = None
         # Keep this inode for the lifetime of the state directory. Unlinking it
         # would let another process lock a different file for the same state.
@@ -274,12 +275,22 @@ class Broker:
         return job, session["run_id"]
 
     @owned
+    def observation_context(self, job, run_id):
+        """Non-secret correlation metadata; never an execution capability."""
+        authority = self.authority(job)
+        return {"run_id_hash": digest(run_id), "config_pin": authority.config_pin,
+                "policy_pin": authority.validator.policy_pin, "authority_epoch": authority.epoch,
+                "controller_instance_id": self.controller_instance_id}
+
+    @owned
     def record(self, job, run_id, event, **data):
         # Callers supply safe codes, trusted workflow names, hashes and numbers.
         # Never serialize raw requests, bearer tokens, tickets, payloads or receipts.
         with self.connect() as conn:
             conn.execute("INSERT INTO trace(job_id,run_id,at,event,data) VALUES(?,?,?,?,?)",
-                         (job["job_id"], run_id, time.time(), event, encoded(data)))
+                         (job["job_id"], run_id, time.time(), event,
+                          encoded({**data, "schema_version": 1, "source": "controller",
+                                   **self.observation_context(job, run_id)})))
 
     @owned
     def create(self, body):
@@ -326,6 +337,7 @@ class Broker:
             effects = conn.execute("SELECT operation_id,action,receipt,cost FROM effects WHERE job_id=?", (job["job_id"],)).fetchall()
         effects = [row for row in effects if not json.loads(row["receipt"]).get("cancelled", False)]
         return {"job_id": job["job_id"], "root_id": snap.root_id, "run_id": snap.run_id,
+                **self.observation_context(job, snap.run_id),
                 "workflow": job["workflow"], "purpose": snap.purpose, "stopped": snap.stopped,
                 "live_model": bool(job["live_enabled"]),
                 "context": plain(snap.context), "capabilities": [asdict(cap) for cap in sorted(snap.capabilities)],
@@ -662,6 +674,9 @@ class Handler(BaseHTTPRequestHandler):
                     value = broker.complete(job, token, run_id)
                 else:
                     raise PermissionError("role_forbidden")
+            if identity is not None:
+                job, run_id = identity
+                value = {**value, "trace_context": broker.observation_context(job, run_id)}
             self.respond(200, value)
         except PermissionError:
             self.respond(403, {"status": "denied", "reason": "unauthorized"})

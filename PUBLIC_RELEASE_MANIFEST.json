@@ -18,8 +18,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 3352,
-      "sha256": "ef9ef51fe69f63c5a3e4a7d826d3ffd4f49f7e517dabb4b794cf05d23fe15daf"
+      "bytes": 5314,
+      "sha256": "3f82db984ab8a787a0c9abf875c3ae0119647ff7778fe3b713fb35b5cf7a9bc7"
     },
     {
       "path": "SECURITY.md",
@@ -30,6 +30,11 @@
       "path": "controller/__init__.py",
       "bytes": 432,
       "sha256": "62a8d532a252abfdc65c7fc8dbca4ef1ce51778d7636e1ce58a34aa6a58ad68d"
+    },
+    {
+      "path": "controller/aws_identity.py",
+      "bytes": 14159,
+      "sha256": "3895496a70cd4fb4a2d91446e52bb7cb921743340689fc1ef314f70db9e65b61"
     },
     {
       "path": "controller/durable.py",
@@ -52,14 +57,19 @@
       "sha256": "89b8c9ae1aa88f93e288fdf573ff92cf2a285a4fad37a21906c9bd9f9659829b"
     },
     {
+      "path": "controller/policy_review.py",
+      "bytes": 15714,
+      "sha256": "df19158d1684d0865995ed0be0479efbd2561c23714279078eb04269ac3dbd02"
+    },
+    {
       "path": "controller/project_budget.py",
       "bytes": 19082,
       "sha256": "651c66d3ac173bc26932a0bd96edd5b2fae2036c4f5475cc834a1af9e10be1c9"
     },
     {
       "path": "controller/service.py",
-      "bytes": 37396,
-      "sha256": "d06041ff01a78fa8b45c58d5d0f9c85a9ac161aca4f62ce675bd01f0f4a94239"
+      "bytes": 38267,
+      "sha256": "3e905f2ddf0c6f276e6250a01a59dd7ba20589abaa0c2373e18a1999df536c96"
     },
     {
       "path": "controller/validators.py",
@@ -72,9 +82,29 @@
       "sha256": "111ed663eb7dab6ed3d228d2e4c38f21297d137eff716385a58c9931484a2484"
     },
     {
+      "path": "demo/aws_identity.py",
+      "bytes": 9891,
+      "sha256": "65332fcdd9bb7300e2e77af0efbd11bb87e6010b2ef9a7b2429a2f9a6b0322aa"
+    },
+    {
+      "path": "demo/aws_identity_agent.py",
+      "bytes": 4881,
+      "sha256": "a5eec97f81cac3885f217c2f21ee7d638078fdb5f17dbab187adae8cce6f4c07"
+    },
+    {
+      "path": "demo/contract.py",
+      "bytes": 15429,
+      "sha256": "b8f6e07a9b4003bda860ceec5bd477613f8abe78e19ad57ca323468ce10819b4"
+    },
+    {
       "path": "demo/local.py",
       "bytes": 4684,
       "sha256": "dad554c0a97bde82ca7e2d98fa7500b6fbce7c16e6d3d68b7eb11a67673525a5"
+    },
+    {
+      "path": "demo/observe.py",
+      "bytes": 5836,
+      "sha256": "b7ddf2302548fd18402d20e03a8d41955ca26391b11034ae92bc8090d0caef8f"
     },
     {
       "path": "demo/run.py",
@@ -88,8 +118,8 @@
     },
     {
       "path": "deploy/agentcore_worker.py",
-      "bytes": 8785,
-      "sha256": "c3873a436b3e8543dabbe40e0f40372b36efcfcccf99ac410ecc14dbff359f12"
+      "bytes": 9524,
+      "sha256": "4dc266ccee3b67ea3d81e63ca5124ef5ee89d0fd9d8cc4909abe8a27df563d8e"
     },
     {
       "path": "deploy/aws_readonly.py",
@@ -108,8 +138,8 @@
     },
     {
       "path": "deploy/bootstrap/bundle.py",
-      "bytes": 12184,
-      "sha256": "c49671199cf00d68fea3f04a00acae8991be55821028b1c118d1e1c8a312dd7a"
+      "bytes": 12216,
+      "sha256": "60234a24ea273cf6d63efff33371ec748d4fdaedfefc4525cf34b81ebca64a65"
     },
     {
       "path": "deploy/bootstrap/controller.service",
@@ -363,8 +393,8 @@
     },
     {
       "path": "deploy/tests/test_agentcore_worker.py",
-      "bytes": 7349,
-      "sha256": "6c98a11cc4098b8fc50891473623c0fffb18fc4fd4768aeef1a869fa941d6d17"
+      "bytes": 8389,
+      "sha256": "4d9eda4c75afa6944ef5b6e91cd30465466e3ff0f4d1cbc0489f63a582dca8ba"
     },
     {
       "path": "deploy/tests/test_aws_readonly.py",
@@ -393,18 +423,43 @@
     },
     {
       "path": "deploy/worker.Dockerfile",
-      "bytes": 1050,
-      "sha256": "12178e81d67c0b01b8a9c8a8d29d8178ed376d714aeb8f92aad6c2c6ab988ee3"
+      "bytes": 1075,
+      "sha256": "100d7f95e88df847e96448574d9ad1745b1900db5c44c48d420767fbe82f7b18"
     },
     {
       "path": "deploy/worker.Dockerfile.dockerignore",
-      "bytes": 317,
-      "sha256": "6abb8367d18e33bbb67ed4e7ce6a5e7b9dc6cfc0529e3a27a7fe514ba074f9bb"
+      "bytes": 343,
+      "sha256": "aa201ff3f59bfb40b0115b5318d99eaeafca8df21e1f487056c3b363dfbe8875"
+    },
+    {
+      "path": "docs/AWS_IDENTITY_DEMO.md",
+      "bytes": 6410,
+      "sha256": "e94e16e38a3b8bcaf998bd996a0caae86cb9a9d9a89c64a88a4e7399eab99aec"
+    },
+    {
+      "path": "docs/BRAINTRUST.md",
+      "bytes": 8056,
+      "sha256": "f281b5299885aeb30370456326a2cee0f177e700952f233e8a1a0995f334d80a"
+    },
+    {
+      "path": "docs/OBSERVABILITY.md",
+      "bytes": 8088,
+      "sha256": "f1cac101f1d8a7947978d88621ca1348d070f4cba1d60084a4f80d858b65cde0"
+    },
+    {
+      "path": "docs/POLICY_REVIEW.md",
+      "bytes": 6928,
+      "sha256": "499227e5dc1670221c1d904910d9758666aa47295198da745033ad33a18597c2"
     },
     {
       "path": "docs/PROVENANCE.md",
       "bytes": 1559,
       "sha256": "1aa8a6521d10657c6548568e61dc249957584cce128a59d6b9d124474d44bba5"
+    },
+    {
+      "path": "docs/SECURITY_LEARNINGS.md",
+      "bytes": 4175,
+      "sha256": "54ca1848814d3d1d654c4bd7d12f71774c7b9530fc2a74b76608e9db1a5dafdf"
     },
     {
       "path": "docs/SELF_HOSTING.md",
@@ -427,19 +482,24 @@
       "sha256": "e6d25912c421822044eb742da52a5a8d030d48c780a11b3a006cc0638f7b94b4"
     },
     {
+      "path": "integration/braintrust_export.py",
+      "bytes": 10067,
+      "sha256": "c3ed6dca4076dfe08b5889e659352755395094d19edcddc8f1a369f2520c307c"
+    },
+    {
       "path": "integration/client.py",
-      "bytes": 4705,
-      "sha256": "9631343358ae88ed7cc59d808b64856960a61cbf74909817688c97e76f3d3972"
+      "bytes": 6144,
+      "sha256": "18a7020c467f1f20627c3bf1f2d02b6e2f92a57a6821aa65a4f594e12c10d824"
     },
     {
       "path": "integration/live_model.py",
-      "bytes": 3890,
-      "sha256": "a5d826de0b2a5e9c2d0d4621ba26555e57f28d35c0ebb102ff30321ef668be0e"
+      "bytes": 4991,
+      "sha256": "84c9a81f7f248eacc18b9b4999aa1e630af97329df9565e1319b155126e76888"
     },
     {
       "path": "integration/live_worker.py",
-      "bytes": 12079,
-      "sha256": "840a6860b0f210ebef44342c5e134cdd60e637f22e4fb6559db1b11996f02f97"
+      "bytes": 13044,
+      "sha256": "f6f20039741324485360f15624ea87fed6a190f02e5c8587e578a254d0fee0a4"
     },
     {
       "path": "integration/process.py",
@@ -447,14 +507,24 @@
       "sha256": "25fb9260cbd8bf40e880371a5ae1d074b0c5339a1dcaa9df9a6f22bd02e6057b"
     },
     {
+      "path": "integration/telemetry.py",
+      "bytes": 8981,
+      "sha256": "d847b582fee4a1c0abae9043e14e890162cb3540ae7c0fbe342c8629d7613ab2"
+    },
+    {
+      "path": "integration/trace_export.py",
+      "bytes": 18672,
+      "sha256": "bd5fb2e30edb8f28227d35017aeb0660c1dff73ceebe2ec3c7832d356dc8c3a9"
+    },
+    {
       "path": "integration/worker.py",
-      "bytes": 5189,
-      "sha256": "659433d9f130e3db6aa55e1985737eb26dc4fb10d04a2fbb7343e22bb79c9f43"
+      "bytes": 6106,
+      "sha256": "384a4de8204ee04f8a9abade90b901015252eecd2df4471384daf20fc4f180c8"
     },
     {
       "path": "public-release-files.json",
-      "bytes": 5217,
-      "sha256": "360dfb2a7cd4aec55fa45776e9db1ec034eccc2277ede4a7dd5ecca06340e226"
+      "bytes": 5940,
+      "sha256": "289754828854296628a0457b06f91e0cd2a312f93f829ee14607bac92c74a20b"
     },
     {
       "path": "pyproject.toml",
@@ -492,9 +562,24 @@
       "sha256": "e4e8d3c25c26199d267df88d51050791fee65c5158802a165d0cbe1a1dbb937b"
     },
     {
+      "path": "tests/test_aws_identity.py",
+      "bytes": 23984,
+      "sha256": "5dae1bf05cf35cbe91dcd067839e31f6556aa1bcfea385bb63dbcc50ff3f7f51"
+    },
+    {
+      "path": "tests/test_braintrust_export.py",
+      "bytes": 21429,
+      "sha256": "c201bd55d92a82245401c91569a721b5e4cce7618e9de2fa9b89e8ef09ef4249"
+    },
+    {
       "path": "tests/test_broker_ownership.py",
       "bytes": 9338,
       "sha256": "566b80e876ff325371dedd4724450149a3f9319ea73bb3f3e0f89fc2f8125233"
+    },
+    {
+      "path": "tests/test_contract_demo.py",
+      "bytes": 4515,
+      "sha256": "177322237229d3b62323de62a6f3e348dc9aa48e65b49397d0048ce9c3d68a35"
     },
     {
       "path": "tests/test_controller_tls.py",
@@ -523,8 +608,18 @@
     },
     {
       "path": "tests/test_live_worker_uncertainty.py",
-      "bytes": 4194,
-      "sha256": "f55a5b1460e61d014b8926d6e6066256cd1f47124e1cba427a9a4f7c3ac41b48"
+      "bytes": 4887,
+      "sha256": "db7af18ca94b5e1acdb045885d0e4f98c480644bbc17d42a63ead9d98898eeb2"
+    },
+    {
+      "path": "tests/test_observability_demo.py",
+      "bytes": 7552,
+      "sha256": "9a11325f530a0c0344fb1f13ffd2b1964c52727b940a6d662ff5c18b5fb28b85"
+    },
+    {
+      "path": "tests/test_policy_review.py",
+      "bytes": 14019,
+      "sha256": "e1447905da11511bb6d7a2c280768c41d3d416e3142d3931188c89dff609f22a"
     },
     {
       "path": "tests/test_project_budget.py",
@@ -542,9 +637,24 @@
       "sha256": "3fd997be3cb72114f3c33d8e5b97a54c0affc7dba914f4b67caa0459f0e894a1"
     },
     {
+      "path": "tests/test_telemetry.py",
+      "bytes": 8213,
+      "sha256": "484d0d8215bccc2dabc5454050a78f7c3fef663d3a10e5ad056cf0e75aa7411e"
+    },
+    {
+      "path": "tests/test_trace_correlation.py",
+      "bytes": 7299,
+      "sha256": "2d895b5eb8dcf9f4b5d6c741bc74b9fe9c02e4d25e05f71c461484f20d451d10"
+    },
+    {
+      "path": "tests/test_trace_export.py",
+      "bytes": 17563,
+      "sha256": "3deb57f6b5771cb487ac14265e73842fdba39a898b0c3db0317d49fdb1476e59"
+    },
+    {
       "path": "tests/test_worker_process.py",
-      "bytes": 4987,
-      "sha256": "7d40814c86e7790a2addb984aa24e77edf57df72b709b4592a496574e48c5f79"
+      "bytes": 5026,
+      "sha256": "8ec6ea957f1d1b4726b3a9fdb8bc808f75c88e97d53b28df77e3e2bd15650754"
     },
     {
       "path": "tests/test_worker_startup.py",
