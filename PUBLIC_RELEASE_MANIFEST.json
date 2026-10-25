@@ -3,8 +3,8 @@
   "files": [
     {
       "path": ".agents/skills/secure-agent-controller/SKILL.md",
-      "bytes": 5328,
-      "sha256": "8200471acedd0310f64caecc8d25ef26c0f3a21d7edb8a684a62ebfe1d55c2e5"
+      "bytes": 6871,
+      "sha256": "dcd31f5e23e169990588370efdcc493077f156c799bd9fe745f67fab9fa78910"
     },
     {
       "path": ".agents/skills/secure-agent-controller/agents/openai.yaml",
