@@ -1,6 +1,8 @@
 {
   "schema_version": 1,
   "files": [
+    ".agents/skills/secure-agent-controller/SKILL.md",
+    ".agents/skills/secure-agent-controller/agents/openai.yaml",
     ".gitignore",
     "CONTRIBUTING.md",
     "LICENSE",
@@ -119,6 +121,7 @@
     "tests/test_contract_demo.py",
     "tests/test_controller_tls.py",
     "tests/test_durable.py",
+    "tests/test_export_public.py",
     "tests/test_guarded_startup.py",
     "tests/test_installation.py",
     "tests/test_live_model.py",

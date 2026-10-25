@@ -15,6 +15,10 @@ FORBIDDEN_PARTS = {".git", ".runtime", ".venv", ".aws", ".codex", ".agents",
 FORBIDDEN_PREFIXES = ("deploy/iam/", "deploy/iam-resolved-proposal/")
 FORBIDDEN_FILES = {"RECOVERY_STATUS.md", "deploy/pilot-template.json",
                    "deploy/review-package.json", "deploy/local-image-evidence.json"}
+PUBLIC_SKILL_FILES = {
+    ".agents/skills/secure-agent-controller/SKILL.md",
+    ".agents/skills/secure-agent-controller/agents/openai.yaml",
+}
 
 
 def export_public(source: Path, manifest: Path, output: Path) -> dict:
@@ -34,7 +38,10 @@ def export_public(source: Path, manifest: Path, output: Path) -> dict:
     for name in definition["files"]:
         relative = PurePosixPath(name)
         if (relative.is_absolute() or name != relative.as_posix() or ".." in relative.parts
-                or not relative.parts or any(part in FORBIDDEN_PARTS for part in relative.parts)
+                or not relative.parts or any(
+                    part in FORBIDDEN_PARTS
+                    and not (part == ".agents" and name in PUBLIC_SKILL_FILES)
+                    for part in relative.parts)
                 or name in FORBIDDEN_FILES or name.startswith(FORBIDDEN_PREFIXES)
                 or any(part == ".env" or part.endswith((".sqlite", ".sqlite3", ".db", ".pyc",
                                                         ".pem", ".key", ".p12", ".pfx"))

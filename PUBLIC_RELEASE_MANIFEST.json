@@ -2,6 +2,16 @@
   "schema_version": 1,
   "files": [
     {
+      "path": ".agents/skills/secure-agent-controller/SKILL.md",
+      "bytes": 5328,
+      "sha256": "8200471acedd0310f64caecc8d25ef26c0f3a21d7edb8a684a62ebfe1d55c2e5"
+    },
+    {
+      "path": ".agents/skills/secure-agent-controller/agents/openai.yaml",
+      "bytes": 221,
+      "sha256": "fe3c891acdf77002fd566829ba5723039aa817b61f5aa9c4f481db1d9dde56be"
+    },
+    {
       "path": ".gitignore",
       "bytes": 293,
       "sha256": "f47560b4a197a00c086a55758693bea64ae5428fa00e97280b5023d1c4ae7c40"
@@ -18,8 +28,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 5314,
-      "sha256": "3f82db984ab8a787a0c9abf875c3ae0119647ff7778fe3b713fb35b5cf7a9bc7"
+      "bytes": 5781,
+      "sha256": "1fa4147d89bcc3dcffb208549bce9407592c5e128e7eecc95ceac939c694c114"
     },
     {
       "path": "SECURITY.md",
@@ -523,8 +533,8 @@
     },
     {
       "path": "public-release-files.json",
-      "bytes": 5940,
-      "sha256": "289754828854296628a0457b06f91e0cd2a312f93f829ee14607bac92c74a20b"
+      "bytes": 6095,
+      "sha256": "b3b63dc0ef9aa73209b94450deeb9fdedb85995631b01500a32bbe236f214806"
     },
     {
       "path": "pyproject.toml",
@@ -543,8 +553,8 @@
     },
     {
       "path": "scripts/export_public.py",
-      "bytes": 4127,
-      "sha256": "3172901b294a2aac163b71c3d05765a2121e2181743120a8b248a42d1a4774fc"
+      "bytes": 4392,
+      "sha256": "2d15bfeb0ae640a98c8c8c87ed57a7b93210d9401a0b777c5ca7696c5858b45e"
     },
     {
       "path": "scripts/install.sh",
@@ -590,6 +600,11 @@
       "path": "tests/test_durable.py",
       "bytes": 29796,
       "sha256": "7ac989e7068510612e9dedf4099b0bc4a22db3d4daaffadb6244033f0be8f81d"
+    },
+    {
+      "path": "tests/test_export_public.py",
+      "bytes": 2875,
+      "sha256": "2a3f0d965d9bd85f564c2d8cf29bcabfb36c123170c48fa92d14d782aac82260"
     },
     {
       "path": "tests/test_guarded_startup.py",

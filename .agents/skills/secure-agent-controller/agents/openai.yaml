@@ -1,0 +1,4 @@
+interface:
+  display_name: "Secure Agent Controller"
+  short_description: "Guide secure controller workflows and releases"
+  default_prompt: "Use $secure-agent-controller to review or extend a controlled agent workflow."
