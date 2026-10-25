@@ -63,8 +63,8 @@
     },
     {
       "path": "controller/live_model.py",
-      "bytes": 17903,
-      "sha256": "031fbd4736821daa324feeb701282c6f57686ac5b30453d1cedddf2576139c91"
+      "bytes": 18205,
+      "sha256": "6a810a60a69a368dab67093d4543697a043f58f8d96520f41ab7ed16419a60d9"
     },
     {
       "path": "controller/policy_review.py",
@@ -588,8 +588,8 @@
     },
     {
       "path": "tests/test_callback_recovery.py",
-      "bytes": 14123,
-      "sha256": "7a3da1b9d8c92a6cb048483f12c83682a69e0a5a36aca2366e803d15a77e364e"
+      "bytes": 25775,
+      "sha256": "1e2f1c1f888b997a23d2414485b019dcef6c491b3608458fd2584f2c0c7d964a"
     },
     {
       "path": "tests/test_contract_demo.py",

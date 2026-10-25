@@ -85,6 +85,221 @@ class AuditCallbackRecoveryTests(unittest.TestCase):
         self.assertEqual(self.model()["status"], "allowed")
         self.assertEqual(len(self.calls), 1)
 
+    def test_model_denial_audit_failure_keeps_reservation_and_never_dispatches(self):
+        self.ledger.stop("test:synthetic-stop", ["test:synthetic"])
+        with self.fail_records("model_denied"):
+            result = self.model()
+        self.assertEqual((result["status"], result["reason"]), ("denied", "audit_unavailable"))
+        self.assertNotIn("receipt", result)
+        self.assertEqual(self.operation_status(self.body["operation_id"]), "reserved")
+        project = self.ledger.snapshot()
+        self.assertEqual((project["spent_microusd"], project["reserved_microusd"]), (0, 0))
+        self.assertEqual(project["operations"], {})
+        self.assertEqual(self.calls, [])
+        replay = self.model()
+        self.assertEqual((replay["status"], replay["reason"]), ("held", "project_budget_denied"))
+        self.assertEqual(self.calls, [])
+
+    def test_model_denial_audit_failure_can_retry_after_real_reconciliation(self):
+        root = Path(self.temporary.name) / "unreconciled"
+        root.mkdir()
+        ledger = ProjectBudgetLedger(
+            root / "project.sqlite",
+            installation=InstallationConfig("example/agent-controller", "0" * 11 + "1", "us-east-1", 200_000_000),
+        )
+        gateway = LiveModelGateway(self.prices, ledger, self.gateway.transport)
+        broker = Broker(root / "service", "test-admin-" + "x" * 32, live_model=gateway)
+        self.addCleanup(broker.close)
+        created = broker.create({"workflow": "recruiting", "live_model": True, "budget_microusd": 1_000_000})
+        job, token, run = broker.job(created["job_id"]), created["token"], created["run_id"]
+        original_record = broker.record
+
+        def fail_denial(current_job, current_run, event, **data):
+            if event == "model_denied":
+                raise RuntimeError("synthetic audit failure")
+            return original_record(current_job, current_run, event, **data)
+
+        with patch.object(broker, "record", side_effect=fail_denial):
+            result = broker.model(job, token, run, self.body)
+        self.assertEqual((result["status"], result["reason"]), ("denied", "audit_unavailable"))
+        self.assertEqual(ledger.snapshot()["operations"], {})
+        self.assertEqual(self.calls, [])
+        ledger.reconcile(prior_spent_microusd=0, outstanding_reserved_microusd=0,
+                         evidence_refs=["test:synthetic-baseline"], as_of="2026-01-01T00:00:00Z")
+        result = broker.model(job, token, run, self.body)
+        self.assertEqual(result["status"], "allowed")
+        self.assertEqual(len(self.calls), 1)
+        replay = broker.model(job, token, run, self.body)
+        self.assertEqual(replay["status"], "allowed")
+        self.assertTrue(replay["replayed"])
+        self.assertEqual(len(self.calls), 1)
+
+    def test_model_denial_audit_failure_does_not_clear_existing_project_reservation(self):
+        reserve = self.ledger.reserve
+
+        def duplicate_reservation(*args, **kwargs):
+            self.assertTrue(reserve(*args, **kwargs)["approved"])
+            return reserve(*args, **kwargs)
+
+        with patch.object(self.ledger, "reserve", side_effect=duplicate_reservation), \
+                self.fail_records("model_denied"):
+            result = self.model()
+        self.assertEqual((result["status"], result["reason"]), ("denied", "audit_unavailable"))
+        self.assertEqual(self.operation_status(self.body["operation_id"]), "reserved")
+        self.assertEqual(self.ledger.snapshot()["reserved_microusd"], self.gateway.max_cost_microusd)
+        self.assertEqual(self.calls, [])
+        replay = self.model()
+        self.assertEqual((replay["status"], replay["reason"]), ("held", "project_budget_denied"))
+        self.assertEqual(self.ledger.snapshot()["reserved_microusd"], self.gateway.max_cost_microusd)
+        self.assertEqual(self.calls, [])
+
+    def test_preclaim_price_expiry_audit_failure_keeps_reservation_and_never_dispatches(self):
+        reserve = self.ledger.reserve
+
+        def reserve_then_expire(*args, **kwargs):
+            result = reserve(*args, **kwargs)
+            self.gateway.clock = lambda: self.prices.expires_at
+            return result
+
+        with patch.object(self.ledger, "reserve", side_effect=reserve_then_expire), \
+                self.fail_records("model_not_dispatched"):
+            result = self.model()
+        self.assertEqual((result["status"], result["reason"]), ("denied", "audit_unavailable"))
+        self.assertNotIn("receipt", result)
+        self.assertEqual(self.operation_status(self.body["operation_id"]), "reserved")
+        project = self.ledger.snapshot()
+        self.assertEqual((project["spent_microusd"], project["reserved_microusd"]), (0, 0))
+        self.assertEqual(next(iter(project["operations"].values()))["status"], "settled")
+        self.assertEqual(self.calls, [])
+        self.gateway.clock = time.time
+        replay = self.model()
+        self.assertEqual((replay["status"], replay["reason"]), ("held", "project_budget_denied"))
+        self.assertEqual(self.calls, [])
+
+    def test_postclaim_price_expiry_audit_failure_holds_claim_without_dispatch(self):
+        original_record = self.broker.record
+
+        def expire_and_fail(job, run, event, **data):
+            if event == "model_started":
+                self.gateway.clock = lambda: self.prices.expires_at
+            if event == "model_not_dispatched":
+                raise RuntimeError("synthetic audit failure")
+            return original_record(job, run, event, **data)
+
+        with patch.object(self.broker, "record", side_effect=expire_and_fail):
+            result = self.model()
+        self.assertEqual((result["status"], result["reason"]), ("denied", "audit_unavailable"))
+        self.assertNotIn("receipt", result)
+        self.assertEqual(self.operation_status(self.body["operation_id"]), "unknown")
+        project = self.ledger.snapshot()
+        self.assertEqual((project["spent_microusd"], project["reserved_microusd"]), (0, 0))
+        self.assertEqual(next(iter(project["operations"].values()))["status"], "settled")
+        self.assertEqual(self.calls, [])
+        self.gateway.clock = time.time
+        replay = self.model()
+        self.assertEqual((replay["status"], replay["reason"]), ("held", "operation_unknown"))
+        self.assertEqual(self.calls, [])
+
+    def test_postclaim_price_expiry_audit_and_settlement_failures_keep_project_reservation(self):
+        original_record = self.broker.record
+
+        def expire_and_fail(job, run, event, **data):
+            if event == "model_started":
+                self.gateway.clock = lambda: self.prices.expires_at
+            if event == "model_not_dispatched":
+                raise RuntimeError("synthetic audit failure")
+            return original_record(job, run, event, **data)
+
+        with patch.object(self.broker, "record", side_effect=expire_and_fail), \
+                patch.object(self.ledger, "settle", side_effect=RuntimeError("synthetic ledger failure")):
+            result = self.model()
+        self.assertEqual((result["status"], result["reason"]), ("denied", "audit_unavailable"))
+        self.assertNotIn("receipt", result)
+        self.assertEqual(self.operation_status(self.body["operation_id"]), "unknown")
+        project = self.ledger.snapshot()
+        self.assertEqual(project["reserved_microusd"], self.gateway.max_cost_microusd)
+        self.assertEqual(next(iter(project["operations"].values()))["status"], "reserved")
+        self.assertEqual(self.calls, [])
+        self.gateway.clock = time.time
+        replay = self.model()
+        self.assertEqual((replay["status"], replay["reason"]), ("held", "operation_unknown"))
+        self.assertEqual(self.calls, [])
+
+    def test_preclaim_price_expiry_audit_and_settlement_failures_keep_project_reservation(self):
+        reserve = self.ledger.reserve
+
+        def reserve_then_expire(*args, **kwargs):
+            result = reserve(*args, **kwargs)
+            self.gateway.clock = lambda: self.prices.expires_at
+            return result
+
+        with patch.object(self.ledger, "reserve", side_effect=reserve_then_expire), \
+                patch.object(self.ledger, "settle", side_effect=RuntimeError("synthetic ledger failure")), \
+                self.fail_records("model_not_dispatched"):
+            result = self.model()
+        self.assertEqual((result["status"], result["reason"]), ("denied", "audit_unavailable"))
+        self.assertNotIn("receipt", result)
+        self.assertEqual(self.operation_status(self.body["operation_id"]), "reserved")
+        project = self.ledger.snapshot()
+        self.assertEqual(project["reserved_microusd"], self.gateway.max_cost_microusd)
+        self.assertEqual(next(iter(project["operations"].values()))["status"], "reserved")
+        self.assertEqual(self.calls, [])
+        self.gateway.clock = time.time
+        replay = self.model()
+        self.assertEqual((replay["status"], replay["reason"]), ("held", "project_budget_denied"))
+        self.assertEqual(self.calls, [])
+
+    def test_postclaim_expired_price_unknown_write_failure_keeps_claim_and_project_reservation(self):
+        original_record = self.broker.record
+        authority = self.broker.authority(self.job)
+
+        def expire_after_started(job, run, event, **data):
+            if event == "model_started":
+                self.gateway.clock = lambda: self.prices.expires_at
+            return original_record(job, run, event, **data)
+
+        with patch.object(self.broker, "record", side_effect=expire_after_started), \
+                patch.object(authority, "mark_unknown", side_effect=RuntimeError("synthetic state failure")):
+            result = self.model()
+        self.assertEqual((result["status"], result["reason"]), ("held", "model_outcome_unknown"))
+        self.assertNotIn("receipt", result)
+        self.assertEqual(self.operation_status(self.body["operation_id"]), "dispatched")
+        project = self.ledger.snapshot()
+        self.assertEqual(project["reserved_microusd"], self.gateway.max_cost_microusd)
+        self.assertEqual(next(iter(project["operations"].values()))["status"], "unknown")
+        self.assertEqual(self.calls, [])
+        self.gateway.clock = time.time
+        replay = self.model()
+        self.assertEqual((replay["status"], replay["reason"]), ("held", "operation_unknown"))
+        self.assertEqual(self.calls, [])
+
+    def test_preclaim_expired_price_preserves_denial_when_audit_succeeds(self):
+        reserve = self.ledger.reserve
+
+        def reserve_then_expire(*args, **kwargs):
+            result = reserve(*args, **kwargs)
+            self.gateway.clock = lambda: self.prices.expires_at
+            return result
+
+        with patch.object(self.ledger, "reserve", side_effect=reserve_then_expire):
+            result = self.model()
+        self.assertEqual((result["status"], result["reason"]), ("denied", "verified_pricing_required"))
+        self.assertEqual(self.calls, [])
+
+    def test_postclaim_expired_price_preserves_denial_when_audit_succeeds(self):
+        original_record = self.broker.record
+
+        def expire_after_started(job, run, event, **data):
+            if event == "model_started":
+                self.gateway.clock = lambda: self.prices.expires_at
+            return original_record(job, run, event, **data)
+
+        with patch.object(self.broker, "record", side_effect=expire_after_started):
+            result = self.model()
+        self.assertEqual((result["status"], result["reason"]), ("denied", "verified_pricing_required"))
+        self.assertEqual(self.operation_status(self.body["operation_id"]), "unknown")
+        self.assertEqual(self.calls, [])
+
     def test_model_start_audit_failure_retains_both_reservations_without_transport(self):
         with self.fail_records("model_started", "model_unknown", "model_decision"):
             result = self.model()

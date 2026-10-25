@@ -200,7 +200,10 @@ class LiveModelGateway:
         except Exception:
             return {"status": "held", "reason": "project_budget_unavailable"}
         if not project.get("approved"):
-            record("model_denied", operation_id_hash=operation_hash, reason="project_budget_denied")
+            try:
+                record("model_denied", operation_id_hash=operation_hash, reason="project_budget_denied")
+            except Exception:
+                return {"status": "denied", "reason": "audit_unavailable", "usage": None}
             return {"status": "held", "reason": "project_budget_denied"}
         def pricing_denial_before_dispatch(*, claimed=False):
             # Budget/authority transactions and audit writes can block. The
@@ -218,9 +221,12 @@ class LiveModelGateway:
                     self.project_budget.settle(key, 0, evidence_refs=["pricing:expired_no_provider_dispatch"])
                 except Exception:
                     reason = "project_budget_unavailable"
-                record("model_not_dispatched", operation_id_hash=operation_hash, reason=reason,
-                       usage={"input_tokens": 0, "output_tokens": 0, "microusd": 0,
-                              "source": "receiver_no_dispatch"})
+                try:
+                    record("model_not_dispatched", operation_id_hash=operation_hash, reason=reason,
+                           usage={"input_tokens": 0, "output_tokens": 0, "microusd": 0,
+                                  "source": "receiver_no_dispatch"})
+                except Exception:
+                    return {"status": "denied", "reason": "audit_unavailable", "usage": None}
                 return {"status": "denied", "reason": reason}
 
         expired = pricing_denial_before_dispatch()
